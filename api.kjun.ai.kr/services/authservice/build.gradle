@@ -1,0 +1,14 @@
+bootJar.enabled = true
+jar.enabled = false
+
+dependencies {
+	implementation 'org.springframework.boot:spring-boot-starter-web'  // RestTemplate 기본 포함
+	// Eureka 클라이언트 제거 - Gateway에서 직접 URL 사용
+	// implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-client'
+	developmentOnly 'org.springframework.boot:spring-boot-devtools'
+	
+	// JWT (JSON Web Token)
+    implementation 'io.jsonwebtoken:jjwt-api:0.12.3'  
+    runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.12.3'
+    runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.12.3'
+}

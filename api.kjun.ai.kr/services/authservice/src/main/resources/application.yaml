@@ -1,0 +1,29 @@
+spring:
+  application:
+    name: auth-service
+  cloud:
+    config:
+      enabled: false
+
+kakao:
+  rest-api-key: ${KAKAO_REST_API_KEY}
+  redirect-uri: ${KAKAO_REDIRECT_URI}
+  
+jwt:
+  secret: ${JWT_SECRET}
+  expiration: ${JWT_EXPIRATION:86400000} # 기본 24시간
+
+# Eureka 클라이언트 비활성화 (Gateway에서 직접 URL 사용)
+eureka:
+  client:
+    enabled: false  # Eureka 클라이언트 명시적으로 비활성화
+server:
+  port: 8081
+
+# 로깅 설정 - System.out이 제대로 보이도록
+logging:
+  level:
+    root: INFO
+    kr.ai.kjun.api: DEBUG
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
