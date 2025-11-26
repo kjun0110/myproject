@@ -8,6 +8,11 @@ spring:
 kakao:
   rest-api-key: ${KAKAO_REST_API_KEY}
   redirect-uri: ${KAKAO_REDIRECT_URI}
+
+naver:
+  client-id: ${NAVER_CLIENT_ID}
+  client-secret: ${NAVER_CLIENT_SECRET}
+  redirect-uri: ${NAVER_REDIRECT_URI}
   
 jwt:
   secret: ${JWT_SECRET}

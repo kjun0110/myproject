@@ -16,9 +16,7 @@ import org.springframework.web.client.RestTemplate;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 
-/**
- * 카카오 OAuth API 호출 서비스 (RestTemplate 사용, WebFlux 없음)
- */
+// 카카오 OAuth API 호출 서비스 (RestTemplate 사용, WebFlux 없음)
 @Service
 public class KakaoService {
 
@@ -34,11 +32,7 @@ public class KakaoService {
         this.kakaoConfig = kakaoConfig;
     }
 
-    /**
-     * 카카오 로그인 URL 생성
-     * 
-     * @return 카카오 로그인 URL
-     */
+    // 카카오 로그인 URL 생성
     public String getKakaoLoginUrl() {
         String baseUrl = "https://kauth.kakao.com/oauth/authorize";
         String clientId = kakaoConfig.getRestApiKey();
@@ -57,29 +51,17 @@ public class KakaoService {
             String kakaoAuthUrl = String.format("%s?client_id=%s&redirect_uri=%s&response_type=code&scope=%s",
                     baseUrl, clientId, encodedRedirectUri, encodedScope);
 
-            System.out.println("🔗 [카카오 로그인 URL 생성]");
-            System.out.println("  - 원본 redirect_uri: " + redirectUri);
-            System.out.println("  - 인코딩된 redirect_uri: " + encodedRedirectUri);
-            System.out.println("  - 최종 URL: " + kakaoAuthUrl);
-            System.out.flush();
-
+            System.out.println("🔗 [카카오 로그인 URL 생성] " + kakaoAuthUrl);
             return kakaoAuthUrl;
         } catch (Exception e) {
             System.err.println("❌ [카카오 로그인 URL 생성 실패] " + e.getMessage());
-            System.err.flush();
             throw new RuntimeException("카카오 로그인 URL 생성 실패", e);
         }
     }
 
-    /**
-     * 1. Authorization Code로 Access Token 받기
-     * 
-     * @param code 카카오 인가 코드
-     * @return 카카오 토큰 응답
-     */
+    // Authorization Code로 Access Token 받기
     public KakaoTokenResponse getAccessToken(String code) {
-        System.out.println("🔑 [카카오 API] Access Token 요청 시작 - code: " + code);
-        System.out.flush();
+        System.out.println("🔑 [카카오 API] Access Token 요청 - code: " + code);
 
         // 요청 헤더 설정
         HttpHeaders headers = new HttpHeaders();
@@ -103,35 +85,23 @@ public class KakaoService {
             KakaoTokenResponse tokenResponse = response.getBody();
             if (tokenResponse != null) {
                 System.out.println("✅ [카카오 API] Access Token 받기 성공");
-                System.out.flush();
                 return tokenResponse;
             } else {
                 throw new RuntimeException("카카오 토큰 응답이 null입니다");
             }
         } catch (org.springframework.web.client.HttpClientErrorException e) {
-            System.err.println("❌ [카카오 API] Access Token 받기 실패: " + e.getStatusCode() + " - " + e.getMessage());
-            System.err.println("❌ [카카오 API] 응답 본문: " + e.getResponseBodyAsString());
-            System.err.println("❌ [카카오 API] 사용된 설정 - client_id: " + kakaoConfig.getRestApiKey() + ", redirect_uri: "
-                    + kakaoConfig.getRedirectUri());
-            System.err.flush();
-            throw new RuntimeException(
-                    "카카오 Access Token 발급 실패: " + e.getStatusCode() + " - " + e.getResponseBodyAsString(), e);
+            System.err
+                    .println("❌ [카카오 API] Access Token 실패: " + e.getStatusCode() + " - " + e.getResponseBodyAsString());
+            throw new RuntimeException("카카오 Access Token 발급 실패: " + e.getStatusCode(), e);
         } catch (Exception e) {
-            System.err.println("❌ [카카오 API] Access Token 받기 실패: " + e.getMessage());
-            System.err.flush();
+            System.err.println("❌ [카카오 API] Access Token 실패: " + e.getMessage());
             throw new RuntimeException("카카오 Access Token 발급 실패", e);
         }
     }
 
-    /**
-     * 2. Access Token으로 사용자 정보 받기
-     * 
-     * @param accessToken 카카오 액세스 토큰
-     * @return 카카오 사용자 정보
-     */
+    // Access Token으로 사용자 정보 받기
     public KakaoUserInfo getUserInfo(String accessToken) {
-        System.out.println("👤 [카카오 API] 사용자 정보 요청 시작");
-        System.out.flush();
+        System.out.println("👤 [카카오 API] 사용자 정보 요청");
 
         // 요청 헤더 설정
         HttpHeaders headers = new HttpHeaders();
@@ -141,16 +111,6 @@ public class KakaoService {
         HttpEntity<String> request = new HttpEntity<>(headers);
 
         try {
-            // 카카오 API 호출 (property_keys 없이 전체 정보 요청)
-            ResponseEntity<String> rawResponse = restTemplate.exchange(
-                    KAKAO_USER_INFO_URL,
-                    HttpMethod.GET,
-                    request,
-                    String.class);
-
-            System.out.println("🔍 [디버깅] 카카오 API Raw 응답: " + rawResponse.getBody());
-            System.out.flush();
-
             ResponseEntity<KakaoUserInfo> response = restTemplate.exchange(
                     KAKAO_USER_INFO_URL,
                     HttpMethod.GET,
@@ -160,50 +120,21 @@ public class KakaoService {
             KakaoUserInfo userInfo = response.getBody();
             if (userInfo != null) {
                 System.out.println("✅ [카카오 API] 사용자 정보 받기 성공 - ID: " + userInfo.getId());
-                System.out.flush();
                 return userInfo;
             } else {
                 throw new RuntimeException("카카오 사용자 정보 응답이 null입니다");
             }
         } catch (Exception e) {
-            System.err.println("❌ [카카오 API] 사용자 정보 받기 실패: " + e.getMessage());
-            System.err.flush();
+            System.err.println("❌ [카카오 API] 사용자 정보 실패: " + e.getMessage());
             throw new RuntimeException("카카오 사용자 정보 조회 실패", e);
         }
     }
 
-    /**
-     * 카카오 인증 및 사용자 정보 추출 (공통 로직)
-     * 
-     * @param code 카카오 인가 코드
-     * @return 카카오 사용자 정보 (KakaoUserInfo)
-     */
+    // 카카오 인증 및 사용자 정보 추출
     public KakaoUserInfo authenticateAndExtractUser(String code) {
-        // 1. Access Token 받기
         KakaoTokenResponse tokenResponse = getAccessToken(code);
-
-        // 2. 사용자 정보 받기
         KakaoUserInfo userInfo = getUserInfo(tokenResponse.getAccessToken());
-
-        // 3. 디버깅: 받아온 정보 로그 출력
-        System.out.println("🔍 [디버깅] 받아온 카카오 사용자 정보:");
-        System.out.println("  - ID: " + userInfo.getId());
-        if (userInfo.getKakaoAccount() != null) {
-            System.out.println("  - hasEmail: " + userInfo.getKakaoAccount().getHasEmail());
-            System.out.println("  - emailNeedsAgreement: " + userInfo.getKakaoAccount().getEmailNeedsAgreement());
-            System.out.println("  - email: " + userInfo.getKakaoAccount().getEmail());
-            if (userInfo.getKakaoAccount().getProfile() != null) {
-                System.out.println("  - nickname: " + userInfo.getKakaoAccount().getProfile().getNickname());
-                System.out.println(
-                        "  - profileImageUrl: " + userInfo.getKakaoAccount().getProfile().getProfileImageUrl());
-            } else {
-                System.out.println("  - profile: null");
-            }
-        } else {
-            System.out.println("  - kakao_account: null");
-        }
-        System.out.flush();
-
+        System.out.println("✅ [카카오 인증] 완료 - ID: " + userInfo.getId());
         return userInfo;
     }
 }
