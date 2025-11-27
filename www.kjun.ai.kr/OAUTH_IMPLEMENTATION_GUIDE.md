@@ -173,9 +173,12 @@ app/
     ├── kakao/
     │   └── success/
     │       └── page.tsx         # 카카오 로그인 성공 페이지
-    └── naver/
+    ├── naver/
+    │   └── success/
+    │       └── page.tsx         # 네이버 로그인 성공 페이지
+    └── google/
         └── success/
-            └── page.tsx         # 네이버 로그인 성공 페이지
+            └── page.tsx         # 구글 로그인 성공 페이지
 ```
 
 ### 1. 인증 유틸리티 (`app/lib/auth.ts`)
@@ -532,6 +535,31 @@ public ResponseEntity<Map<String, Object>> getNaverLoginUrl() {
 }
 ```
 
+**구글 구현 예시:**
+```java
+@PostMapping("/api/auth/google")
+public ResponseEntity<Map<String, Object>> getGoogleLoginUrl() {
+    String state = UUID.randomUUID().toString(); // CSRF 방지
+    
+    String googleAuthUrl = "https://accounts.google.com/o/oauth2/v2/auth?" +
+        "client_id=" + googleClientId +
+        "&redirect_uri=" + URLEncoder.encode(
+            "http://localhost:8080/auth/google/callback", 
+            "UTF-8"
+        ) +
+        "&response_type=code" +
+        "&scope=openid email profile" +
+        "&state=" + state;
+    
+    // state를 세션이나 Redis에 저장 (검증용)
+    session.setAttribute("google_state", state);
+    
+    Map<String, Object> response = new HashMap<>();
+    response.put("loginUrl", googleAuthUrl);
+    return ResponseEntity.ok(response);
+}
+```
+
 #### 2. 콜백 처리 엔드포인트
 
 **카카오:**
@@ -542,6 +570,11 @@ GET /auth/kakao/callback?code={인가코드}
 **네이버:**
 ```
 GET /auth/naver/callback?code={인가코드}&state={state}
+```
+
+**구글:**
+```
+GET /auth/google/callback?code={인가코드}&state={state}
 ```
 
 **Java 구현 예시 (카카오):**
@@ -683,6 +716,106 @@ public ResponseEntity<Void> naverCallback(
             .location(URI.create(errorUrl))
             .build();
     }
+}
+```
+
+**구글 구현 예시:**
+```java
+@GetMapping("/auth/google/callback")
+public ResponseEntity<Void> googleCallback(
+        @RequestParam String code,
+        @RequestParam String state) {
+    try {
+        // 1. state 검증 (CSRF 방지)
+        String savedState = (String) session.getAttribute("google_state");
+        if (!state.equals(savedState)) {
+            throw new SecurityException("Invalid state parameter");
+        }
+        
+        // 2. 인가 코드로 액세스 토큰 요청
+        String googleToken = getGoogleToken(code);
+        
+        // 3. 액세스 토큰으로 사용자 정보 조회
+        GoogleUserInfo userInfo = getGoogleUserInfo(googleToken);
+        
+        // 4. 우리 서비스 JWT 발급
+        String jwt = jwtService.generateToken(
+            userInfo.getId(), 
+            userInfo.getEmail()
+        );
+        
+        // 5. Next.js로 리다이렉트
+        String callbackUrl = "http://localhost:3000/auth/google/success" +
+            "?token=" + jwt +
+            "&id=" + userInfo.getId() +
+            "&email=" + URLEncoder.encode(userInfo.getEmail(), "UTF-8") +
+            "&nickname=" + URLEncoder.encode(userInfo.getName(), "UTF-8");
+        
+        return ResponseEntity.status(HttpStatus.FOUND)
+            .location(URI.create(callbackUrl))
+            .build();
+    } catch (Exception e) {
+        // 에러 처리
+        String errorUrl = "http://localhost:3000/auth/google/success?error=" +
+            URLEncoder.encode(e.getMessage(), "UTF-8");
+        return ResponseEntity.status(HttpStatus.FOUND)
+            .location(URI.create(errorUrl))
+            .build();
+    }
+}
+```
+
+**구글 액세스 토큰 요청:**
+```java
+private String getGoogleToken(String code) throws Exception {
+    String url = "https://oauth2.googleapis.com/token";
+    
+    HttpHeaders headers = new HttpHeaders();
+    headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+    
+    MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
+    params.add("grant_type", "authorization_code");
+    params.add("client_id", googleClientId);
+    params.add("client_secret", googleClientSecret);
+    params.add("redirect_uri", "http://localhost:8080/auth/google/callback");
+    params.add("code", code);
+    
+    HttpEntity<MultiValueMap<String, String>> request = 
+        new HttpEntity<>(params, headers);
+    
+    ResponseEntity<Map> response = restTemplate.postForEntity(
+        url, 
+        request, 
+        Map.class
+    );
+    
+    return (String) response.getBody().get("access_token");
+}
+```
+
+**구글 사용자 정보 조회:**
+```java
+private GoogleUserInfo getGoogleUserInfo(String accessToken) throws Exception {
+    String url = "https://www.googleapis.com/oauth2/v2/userinfo";
+    
+    HttpHeaders headers = new HttpHeaders();
+    headers.set("Authorization", "Bearer " + accessToken);
+    
+    HttpEntity<String> request = new HttpEntity<>(headers);
+    
+    ResponseEntity<Map> response = restTemplate.exchange(
+        url,
+        HttpMethod.GET,
+        request,
+        Map.class
+    );
+    
+    GoogleUserInfo userInfo = new GoogleUserInfo();
+    userInfo.setId((String) response.getBody().get("id"));
+    userInfo.setEmail((String) response.getBody().get("email"));
+    userInfo.setName((String) response.getBody().get("name"));
+    
+    return userInfo;
 }
 ```
 
@@ -1043,6 +1176,40 @@ public ResponseEntity<Void> naverCallback(
 }
 ```
 
+### 문제 2-1: 구글 "redirect_uri_mismatch" 에러
+
+**원인:**
+- 구글 클라우드 콘솔에 등록된 redirect_uri와 백엔드에서 사용하는 redirect_uri가 일치하지 않음
+- 구글은 redirect_uri를 정확히 일치시켜야 함 (대소문자, 슬래시, 포트 번호 등 모두 일치해야 함)
+
+**해결:**
+1. **구글 클라우드 콘솔에서 확인:**
+   - [Google Cloud Console](https://console.cloud.google.com/) 접속
+   - APIs & Services > Credentials > OAuth 2.0 Client IDs 선택
+   - 사용 중인 클라이언트 ID 클릭
+   - "승인된 리디렉션 URI" 섹션 확인
+
+2. **백엔드 코드에서 사용하는 redirect_uri 확인:**
+   ```java
+   // 백엔드에서 사용하는 redirect_uri
+   String redirectUri = "http://localhost:8080/auth/google/callback";
+   ```
+
+3. **구글 클라우드 콘솔에 정확히 동일한 URI 등록:**
+   - 승인된 리디렉션 URI에 `http://localhost:8080/auth/google/callback` 추가
+   - 프로토콜(http/https), 호스트, 포트, 경로가 모두 일치해야 함
+   - 마지막 슬래시(/)도 일치해야 함
+
+4. **주의사항:**
+   - `http://localhost:8080/auth/google/callback` ✅
+   - `http://localhost:8080/auth/google/callback/` ❌ (슬래시 차이)
+   - `https://localhost:8080/auth/google/callback` ❌ (프로토콜 차이)
+   - `http://127.0.0.1:8080/auth/google/callback` ❌ (호스트 차이)
+
+5. **프로덕션 환경:**
+   - 프로덕션 도메인도 동일하게 등록 필요
+   - 예: `https://yourdomain.com/auth/google/callback`
+
 ### 문제 3: CORS 에러
 
 **원인:**
@@ -1074,18 +1241,23 @@ public class CorsConfig {
 
 **원인:**
 - 세션에 저장한 state와 콜백으로 받은 state가 다름
+- 네이버/구글 모두 state 파라미터를 사용하므로 동일한 문제 발생 가능
 
 **해결:**
 - 세션 관리 확인 및 state 검증 로직 점검
 
 ```java
-// state 생성 시 세션에 저장
+// state 생성 시 세션에 저장 (네이버)
 String state = UUID.randomUUID().toString();
 session.setAttribute("naver_state", state);
 
-// 콜백에서 검증
+// state 생성 시 세션에 저장 (구글)
+String state = UUID.randomUUID().toString();
+session.setAttribute("google_state", state);
+
+// 콜백에서 검증 (네이버/구글 동일)
 String receivedState = request.getParameter("state");
-String savedState = (String) session.getAttribute("naver_state");
+String savedState = (String) session.getAttribute("{provider}_state");
 
 if (savedState == null || !receivedState.equals(savedState)) {
     throw new SecurityException("Invalid state parameter");
@@ -1193,11 +1365,11 @@ function isAuthenticated(): boolean {
 프론트엔드:
 - app/page.tsx                    # 로그인 페이지
 - app/lib/auth.ts                 # 인증 유틸리티
-- app/auth/{provider}/success/    # 성공 페이지
+- app/auth/{provider}/success/    # 성공 페이지 (kakao, naver, google)
 
 백엔드:
-- /api/auth/{provider}            # 로그인 URL 반환
-- /auth/{provider}/callback       # OAuth 콜백 처리
+- /api/auth/{provider}            # 로그인 URL 반환 (kakao는 /api/auth/kakao/login)
+- /auth/{provider}/callback       # OAuth 콜백 처리 (kakao, naver, google)
 ```
 
 ---

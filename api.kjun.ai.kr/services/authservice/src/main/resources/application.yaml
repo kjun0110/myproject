@@ -13,6 +13,11 @@ naver:
   client-id: ${NAVER_CLIENT_ID}
   client-secret: ${NAVER_CLIENT_SECRET}
   redirect-uri: ${NAVER_REDIRECT_URI}
+
+google:
+  client-id: ${GOOGLE_CLIENT_ID}
+  client-secret: ${GOOGLE_CLIENT_SECRET}
+  redirect-uri: ${GOOGLE_REDIRECT_URI}
   
 jwt:
   secret: ${JWT_SECRET}

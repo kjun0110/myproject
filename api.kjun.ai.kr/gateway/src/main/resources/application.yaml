@@ -54,6 +54,14 @@ spring:
             - Path=/auth/naver/callback
           filters:
             - RewritePath=/auth/naver/callback, /naver/callback
+        
+        # 구글 OAuth 콜백: /auth/google/callback → /google/callback
+        - id: google-callback
+          uri: http://authservice:8081
+          predicates:
+            - Path=/auth/google/callback
+          filters:
+            - RewritePath=/auth/google/callback, /google/callback
 
 # 서버 포트
 server:
