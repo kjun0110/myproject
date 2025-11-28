@@ -1,18 +1,20 @@
 // 인증 관련 유틸리티 함수
 
-export const API_GATEWAY_URL = "http://localhost:8080";
+import { API_GATEWAY_URL, STORAGE_KEYS, ERROR_MESSAGES } from "@/app/constants/auth";
 
 export type AuthProvider = "kakao" | "naver" | "google";
+
+export interface UserInfo {
+    id?: string;
+    email?: string;
+    nickname?: string;
+}
 
 export interface AuthResponse {
     success?: boolean;
     token?: string;
     loginUrl?: string;
-    user?: {
-        id?: string;
-        email?: string;
-        nickname?: string;
-    };
+    user?: UserInfo;
     message?: string;
 }
 
@@ -29,7 +31,7 @@ export async function parseErrorResponse(
     endpoint: string
 ): Promise<string> {
     if (response.status === 404) {
-        return `Gateway API 엔드포인트를 찾을 수 없습니다.\nGateway에 POST ${endpoint} 엔드포인트가 있는지 확인해주세요.`;
+        return `${ERROR_MESSAGES.ENDPOINT_NOT_FOUND}\nGateway에 POST ${endpoint} 엔드포인트가 있는지 확인해주세요.`;
     }
 
     let errorMessage = `HTTP error! status: ${response.status}`;
@@ -57,14 +59,51 @@ export async function parseErrorResponse(
 export function saveAuthData(
     token: string,
     provider: AuthProvider,
-    user?: { id?: string; email?: string; nickname?: string }
+    user?: UserInfo
 ): void {
-    localStorage.setItem("access_token", token);
-    localStorage.setItem("login_provider", provider);
+    localStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, token);
+    localStorage.setItem(STORAGE_KEYS.LOGIN_PROVIDER, provider);
 
     if (user && Object.keys(user).length > 0) {
-        localStorage.setItem("user_info", JSON.stringify(user));
+        localStorage.setItem(STORAGE_KEYS.USER_INFO, JSON.stringify(user));
     }
+}
+
+/**
+ * 로컬스토리지에서 사용자 정보 가져오기
+ */
+export function getUserInfo(): UserInfo | null {
+    try {
+        const userInfo = localStorage.getItem(STORAGE_KEYS.USER_INFO);
+        return userInfo ? JSON.parse(userInfo) : null;
+    } catch (e) {
+        console.error("사용자 정보 파싱 에러:", e);
+        return null;
+    }
+}
+
+/**
+ * 로컬스토리지에서 로그인 제공자 가져오기
+ */
+export function getLoginProvider(): AuthProvider | null {
+    return localStorage.getItem(STORAGE_KEYS.LOGIN_PROVIDER) as AuthProvider | null;
+}
+
+/**
+ * 로컬스토리지에서 액세스 토큰 가져오기
+ */
+export function getAccessToken(): string | null {
+    return localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN);
+}
+
+/**
+ * 로컬스토리지에서 모든 인증 정보 삭제
+ */
+export function clearAuthData(): void {
+    localStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);
+    localStorage.removeItem(STORAGE_KEYS.USER_INFO);
+    localStorage.removeItem(STORAGE_KEYS.LOGIN_PROVIDER);
+    localStorage.removeItem(STORAGE_KEYS.REFRESH_TOKEN);
 }
 
 /**
@@ -118,7 +157,7 @@ export function handleTokenResponse(
         console.log(`${provider} 로그인 성공:`, data);
         router.push("/dashboard");
     } else {
-        throw new Error(data.message || "로그인에 실패했습니다.");
+        throw new Error(data.message || ERROR_MESSAGES.LOGIN_FAILED);
     }
 }
 
