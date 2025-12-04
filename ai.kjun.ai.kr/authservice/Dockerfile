@@ -7,9 +7,7 @@ WORKDIR /app
 
 RUN pip install --no-cache-dir fastapi uvicorn
 
-COPY gateway ./gateway
+COPY app ./app
 
-COPY services ./services
-
-CMD ["uvicorn", "gateway.app.main:app", "--host", "0.0.0.0", "--port", "9000"]
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "9001"]
 

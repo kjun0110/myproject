@@ -2,49 +2,30 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { getUserInfo, getLoginProvider, clearAuthData, type UserInfo } from "@/app/lib/auth";
+import { type AuthProvider } from "@/app/lib/auth";
+import { PROVIDER_NAMES } from "@/app/constants/auth";
 
 export default function Dashboard() {
     const router = useRouter();
-    const [userInfo, setUserInfo] = useState<any>(null);
-    const [loginProvider, setLoginProvider] = useState<string | null>(null);
+    const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
+    const [loginProvider, setLoginProvider] = useState<AuthProvider | null>(null);
 
     useEffect(() => {
-        // localStorage에서 사용자 정보 가져오기
-        const storedUserInfo = localStorage.getItem("user_info");
-        if (storedUserInfo) {
-            try {
-                setUserInfo(JSON.parse(storedUserInfo));
-            } catch (e) {
-                console.error("사용자 정보 파싱 에러:", e);
-            }
-        }
+        const storedUserInfo = getUserInfo();
+        const provider = getLoginProvider();
 
-        // 로그인 제공자 정보 가져오기
-        const provider = localStorage.getItem("login_provider");
+        setUserInfo(storedUserInfo);
         setLoginProvider(provider);
     }, []);
 
     const handleLogout = () => {
-        // 토큰 및 사용자 정보 삭제
-        localStorage.removeItem("access_token");
-        localStorage.removeItem("user_info");
-        localStorage.removeItem("login_provider");
-
-        // 홈으로 이동
+        clearAuthData();
         router.push("/");
     };
 
-    const getProviderName = (provider: string | null) => {
-        switch (provider) {
-            case "kakao":
-                return "카카오";
-            case "naver":
-                return "네이버";
-            case "google":
-                return "구글";
-            default:
-                return "소셜";
-        }
+    const getProviderName = (provider: AuthProvider | null): string => {
+        return provider ? PROVIDER_NAMES[provider] : "소셜";
     };
 
     return (
@@ -81,6 +62,12 @@ export default function Dashboard() {
                             )}
                         </div>
                     )}
+                    <button
+                        onClick={() => router.push("/dashboard/titanic")}
+                        className="flex h-12 w-full max-w-xs items-center justify-center gap-3 rounded-lg bg-blue-600 px-6 text-base font-medium text-white transition-colors hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-700"
+                    >
+                        타이타닉
+                    </button>
                     <button
                         onClick={handleLogout}
                         className="flex h-12 w-full max-w-xs items-center justify-center gap-3 rounded-lg bg-[#03C75A] px-6 text-base font-medium text-white transition-colors hover:bg-[#02B350] dark:bg-[#03C75A] dark:hover:bg-[#02B350]"

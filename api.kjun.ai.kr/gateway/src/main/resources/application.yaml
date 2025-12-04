@@ -54,6 +54,45 @@ spring:
             - Path=/auth/naver/callback
           filters:
             - RewritePath=/auth/naver/callback, /naver/callback
+        
+        # 구글 OAuth 콜백: /auth/google/callback → /google/callback
+        - id: google-callback
+          uri: http://authservice:8081
+          predicates:
+            - Path=/auth/google/callback
+          filters:
+            - RewritePath=/auth/google/callback, /google/callback
+        
+        # Crawler Service API: /api/crawler/** → crawler-service로 라우팅
+        - id: crawler-service
+          uri: http://crawlerservice:9002
+          predicates:
+            - Path=/api/crawler/**
+          filters:
+            # /api/crawler/** → /**로 경로 변환
+            - RewritePath=/api/crawler/(?<segment>.*), /${segment}
+        
+        # Crawler Service 루트 경로: /crawler/** → crawler-service로 라우팅
+        - id: crawler-service-root
+          uri: http://crawlerservice:9002
+          predicates:
+            - Path=/crawler/**
+          filters:
+            - RewritePath=/crawler/(?<segment>.*), /${segment}
+        
+        # Titanic Service API: /api/titanic/** → tatanic-service로 라우팅
+        - id: tatanic-service
+          uri: http://tatanic:9001
+          predicates:
+            - Path=/api/titanic/**
+          filters:
+            # /api/titanic/** → /**로 경로 변환
+            - RewritePath=/api/titanic/(?<segment>.*), /${segment}
+            # CORS 헤더 제거 (게이트웨이에서만 처리)
+            - RemoveResponseHeader=Access-Control-Allow-Origin
+            - RemoveResponseHeader=Access-Control-Allow-Methods
+            - RemoveResponseHeader=Access-Control-Allow-Headers
+            - RemoveResponseHeader=Access-Control-Allow-Credentials
 
 # 서버 포트
 server:

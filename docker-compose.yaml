@@ -1,0 +1,71 @@
+services:
+  gatewayserver:
+    build:
+      context: ./api.kjun.ai.kr
+      dockerfile: ./gateway/Dockerfile
+    container_name: gatewayserver
+    ports:
+      - "8080:8080"
+    networks:
+      spring-network:
+
+
+  auth-service:
+    build:
+      context: ./core.kjun.ai.kr/authservice
+      dockerfile: ./Dockerfile
+    container_name: authservice
+    ports:
+      - "8081:8081"
+    environment:
+      - KAKAO_REST_API_KEY=${KAKAO_REST_API_KEY}
+      - KAKAO_REDIRECT_URI=${KAKAO_REDIRECT_URI}
+      - NAVER_CLIENT_ID=${NAVER_CLIENT_ID}
+      - NAVER_CLIENT_SECRET=${NAVER_CLIENT_SECRET}
+      - NAVER_REDIRECT_URI=${NAVER_REDIRECT_URI}
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
+      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
+      - GOOGLE_REDIRECT_URI=${GOOGLE_REDIRECT_URI}
+      - FRONT_LOGIN_CALLBACK_URL=${FRONT_LOGIN_CALLBACK_URL}
+      - JWT_SECRET=${JWT_SECRET}
+      - JWT_EXPIRATION=${JWT_EXPIRATION:-86400000}
+    networks:
+      spring-network:
+
+
+  user-service:
+    build:
+      context: ./core.kjun.ai.kr/userservice
+      dockerfile: ./Dockerfile
+    container_name: userservice
+    ports:
+      - "8082:8082"
+    networks:
+      spring-network:
+
+
+  crawlerservice:
+    build:
+      context: ./ai.kjun.ai.kr/crawlerservice
+      dockerfile: ./Dockerfile
+    container_name: crawlerservice
+    ports:
+      - "9003:9002"
+    networks:
+      spring-network:
+
+
+  tatanic:
+    build:
+      context: ./ai.kjun.ai.kr/tatanic
+      dockerfile: ./Dockerfile
+    container_name: tatanic
+    ports:
+      - "9001:9001"
+    networks:
+      spring-network:
+
+
+networks:
+  spring-network:
+    driver: bridge

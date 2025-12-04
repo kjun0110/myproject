@@ -1,5 +1,3 @@
 rootProject.name = 'api'
 
 include 'gateway'
-include 'services:authservice'
-include 'services:userservice'
