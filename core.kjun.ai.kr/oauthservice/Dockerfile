@@ -22,5 +22,5 @@ RUN ./gradlew bootJar --no-daemon --stacktrace
 # Runtime stage
 FROM eclipse-temurin:21-jdk-alpine
 VOLUME /tmp
-COPY --from=build /app/build/libs/*.jar auth-service.jar
-ENTRYPOINT ["java", "-jar", "/auth-service.jar"]
+COPY --from=build /app/build/libs/*.jar oauth-service.jar
+ENTRYPOINT ["java", "-jar", "/oauth-service.jar"]

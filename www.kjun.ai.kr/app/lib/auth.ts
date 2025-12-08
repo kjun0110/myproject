@@ -115,7 +115,7 @@ export async function requestSocialLogin(
     const endpoint =
         provider === "kakao"
             ? "/api/auth/kakao/login"
-            : `/api/auth/${provider}`;
+            : `/api/auth/${provider}/login`;
 
     const response = await fetch(`${API_GATEWAY_URL}${endpoint}`, {
         method: "POST",
@@ -141,7 +141,8 @@ export async function requestSocialLogin(
  */
 export function redirectToLoginUrl(loginUrl: string, provider: AuthProvider): void {
     console.log(`${provider} 로그인 URL로 리다이렉트:`, loginUrl);
-    window.location.href = loginUrl;
+    // window.location.href 대신 window.location.replace 사용 (뒤로가기 방지)
+    window.location.replace(loginUrl);
 }
 
 /**

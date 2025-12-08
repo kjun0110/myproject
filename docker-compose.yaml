@@ -10,13 +10,13 @@ services:
       spring-network:
 
 
-  auth-service:
+  oauth-service:
     build:
-      context: ./core.kjun.ai.kr/authservice
+      context: ./core.kjun.ai.kr/oauthservice
       dockerfile: ./Dockerfile
-    container_name: authservice
+    container_name: oauthservice
     ports:
-      - "8081:8081"
+      - "8091:8091"
     environment:
       - KAKAO_REST_API_KEY=${KAKAO_REST_API_KEY}
       - KAKAO_REDIRECT_URI=${KAKAO_REDIRECT_URI}
@@ -39,7 +39,7 @@ services:
       dockerfile: ./Dockerfile
     container_name: userservice
     ports:
-      - "8082:8082"
+      - "8092:8092"
     networks:
       spring-network:
 
@@ -50,18 +50,29 @@ services:
       dockerfile: ./Dockerfile
     container_name: crawlerservice
     ports:
-      - "9003:9002"
+      - "9012:9012"
     networks:
       spring-network:
 
 
-  tatanic:
+  authservice:
     build:
-      context: ./ai.kjun.ai.kr/tatanic
+      context: ./ai.kjun.ai.kr/authservice
       dockerfile: ./Dockerfile
-    container_name: tatanic
+    container_name: authservice
     ports:
-      - "9001:9001"
+      - "9011:9011"
+    networks:
+      spring-network:
+
+
+  mlservice:
+    build:
+      context: ./ai.kjun.ai.kr/mlservice
+      dockerfile: ./Dockerfile
+    container_name: mlservice
+    ports:
+      - "9010:9010"
     networks:
       spring-network:
 
