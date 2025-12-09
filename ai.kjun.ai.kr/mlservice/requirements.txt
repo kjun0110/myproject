@@ -3,5 +3,6 @@ uvicorn
 pandas
 numpy
 scikit-learn  # datasets 포함 (from sklearn import datasets)
+lightgbm
 icecream
 

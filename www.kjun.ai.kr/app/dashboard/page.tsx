@@ -2,9 +2,9 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { getUserInfo, getLoginProvider, clearAuthData, type UserInfo } from "@/app/lib/auth";
-import { type AuthProvider } from "@/app/lib/auth";
-import { PROVIDER_NAMES } from "@/app/constants/auth";
+import { getUserInfo, getLoginProvider, clearAuthData, type UserInfo } from "@/lib/auth";
+import { type AuthProvider } from "@/lib/auth";
+import { PROVIDER_NAMES } from "@/constants/auth";
 
 export default function Dashboard() {
     const router = useRouter();

@@ -2,10 +2,10 @@
 
 import { useRouter, useSearchParams, useParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import { type AuthProvider } from "@/app/lib/auth";
-import { saveAuthData, type UserInfo } from "@/app/lib/auth";
-import { ERROR_MESSAGES } from "@/app/constants/auth";
-import { AuthStatusPage } from "@/app/components/AuthStatusPage";
+import { type AuthProvider } from "@/lib/auth";
+import { saveAuthData, type UserInfo } from "@/lib/auth";
+import { ERROR_MESSAGES } from "@/constants/auth";
+import { AuthStatusPage } from "@/components/AuthStatusPage";
 
 /**
  * 동적 라우팅 경로: app/auth/[provider]/success/page.tsx

@@ -11,12 +11,11 @@ spring:
       enabled: true
     
     gateway:
-      # CORS 설정: 프론트엔드(localhost:3000, localhost:4000)에서의 요청 허용
+      # CORS 설정: 프론트엔드(localhost:4000)에서의 요청 허용
       globalcors:
         cors-configurations:
           '[/**]':
             allowedOrigins:
-              - "http://localhost:3000"
               - "http://localhost:4000"
             allowedMethods:
               - GET
@@ -40,48 +39,25 @@ spring:
             # /api/auth/kakao → /kakao로 경로 변환
             - RewritePath=/api/auth/(?<segment>.*), /${segment}
         
-        # 카카오 OAuth 콜백: /auth/kakao/callback 또는 /oauth/kakao/callback → /kakao/callback
+        # 카카오 OAuth 콜백: /oauth/kakao/callback → /kakao/callback
         - id: kakao-callback
-          uri: http://oauthservice:8091
-          predicates:
-            - Path=/auth/kakao/callback
-          filters:
-            - RewritePath=/auth/kakao/callback, /kakao/callback
-        
-        # 카카오 OAuth 콜백 (oauth 경로): /oauth/kakao/callback → /kakao/callback
-        - id: kakao-callback-oauth
           uri: http://oauthservice:8091
           predicates:
             - Path=/oauth/kakao/callback
           filters:
             - RewritePath=/oauth/kakao/callback, /kakao/callback
         
-        # 네이버 OAuth 콜백: /auth/naver/callback 또는 /oauth/naver/callback → /naver/callback
-        - id: naver-callback
-          uri: http://oauthservice:8091
-          predicates:
-            - Path=/auth/naver/callback
-          filters:
-            - RewritePath=/auth/naver/callback, /naver/callback
         
-        # 네이버 OAuth 콜백 (oauth 경로): /oauth/naver/callback → /naver/callback
-        - id: naver-callback-oauth
+        # 네이버 OAuth 콜백: /oauth/naver/callback → /naver/callback
+        - id: naver-callback
           uri: http://oauthservice:8091
           predicates:
             - Path=/oauth/naver/callback
           filters:
             - RewritePath=/oauth/naver/callback, /naver/callback
         
-        # 구글 OAuth 콜백: /auth/google/callback 또는 /oauth/google/callback → /google/callback
+        # 구글 OAuth 콜백: /oauth/google/callback → /google/callback
         - id: google-callback
-          uri: http://oauthservice:8091
-          predicates:
-            - Path=/auth/google/callback
-          filters:
-            - RewritePath=/auth/google/callback, /google/callback
-        
-        # 구글 OAuth 콜백 (oauth 경로): /oauth/google/callback → /google/callback
-        - id: google-callback-oauth
           uri: http://oauthservice:8091
           predicates:
             - Path=/oauth/google/callback

@@ -1,8 +1,8 @@
 "use client";
 
 import Image from "next/image";
-import { useSocialLogin } from "@/app/hooks/useSocialLogin";
-import { SocialLoginButton } from "@/app/components/SocialLoginButton";
+import { useSocialLogin } from "@/hooks/useSocialLogin";
+import { SocialLoginButton } from "@/components/SocialLoginButton";
 
 export default function Home() {
   const {

@@ -1,6 +1,6 @@
 import React from "react";
-import { type AuthProvider, requestSocialLogin, redirectToLoginUrl, handleTokenResponse } from "@/app/lib/auth";
-import { ERROR_MESSAGES } from "@/app/constants/auth";
+import { type AuthProvider, requestSocialLogin, redirectToLoginUrl, handleTokenResponse } from "@/lib/auth";
+import { ERROR_MESSAGES } from "@/constants/auth";
 
 // 핸들러 반환 타입
 export interface SocialLoginHandlers {

@@ -1,7 +1,9 @@
 
 import pandas as pd
 import os
-from icecream import ic
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class TitanicModel:

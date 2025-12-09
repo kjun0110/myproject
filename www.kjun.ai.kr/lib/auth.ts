@@ -1,6 +1,6 @@
 // 인증 관련 유틸리티 함수
 
-import { API_GATEWAY_URL, STORAGE_KEYS, ERROR_MESSAGES } from "@/app/constants/auth";
+import { API_GATEWAY_URL, STORAGE_KEYS, ERROR_MESSAGES } from "@/constants/auth";
 
 export type AuthProvider = "kakao" | "naver" | "google";
 

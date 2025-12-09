@@ -1,4 +1,4 @@
-import { type AuthProvider } from "@/app/lib/auth";
+import { type AuthProvider } from "@/lib/auth";
 
 // API 설정
 export const API_GATEWAY_URL = "http://localhost:8080";

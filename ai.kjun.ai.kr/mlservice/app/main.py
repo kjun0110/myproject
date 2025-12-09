@@ -1,6 +1,16 @@
 from fastapi import FastAPI
 from titanic.titanic_router import titanic_router
 from grade.grade_router import grade_router
+import logging
+
+# Logging 설정
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.StreamHandler(),  # 콘솔 출력
+    ]
+)
 
 app = FastAPI(
     title="ML Service",

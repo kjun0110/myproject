@@ -1,6 +1,6 @@
 "use client";
 
-import { type AuthProvider } from "@/app/lib/auth";
+import { type AuthProvider } from "@/lib/auth";
 import { type ReactNode } from "react";
 
 interface SocialLoginButtonProps {

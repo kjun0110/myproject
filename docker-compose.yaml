@@ -73,6 +73,8 @@ services:
     container_name: mlservice
     ports:
       - "9010:9010"
+    volumes:
+      - ./ai.kjun.ai.kr/mlservice/app/kaggle:/app/kaggle
     networks:
       spring-network:
 

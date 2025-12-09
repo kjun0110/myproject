@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { type AuthProvider } from "@/app/lib/auth";
+import { type AuthProvider } from "@/lib/auth";
 import { createSocialLoginHandlers } from "@/service/mainservice";
 
 export function useSocialLogin() {
