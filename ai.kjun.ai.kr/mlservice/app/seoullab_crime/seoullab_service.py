@@ -80,6 +80,9 @@ class SeoullabService:
             
             logger.info(f"🔥💧자치구 리스트 2: {gu_names}")
             
+            # 관서명 컬럼을 '서울~~경찰서' 형식으로 변경
+            crime['관서명'] = station_names
+            
             # 자치구 컬럼을 제일 앞열에 추가
             crime.insert(0, '자치구', gu_names)
             
