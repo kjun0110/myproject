@@ -5,4 +5,8 @@ numpy
 scikit-learn  # datasets 포함 (from sklearn import datasets)
 lightgbm
 icecream
+openpyxl  # Excel 파일 읽기용 (.xlsx)
+xlrd  # Excel 파일 읽기용 (.xls)
+requests  # HTTP 요청용 (카카오 맵 API)
+python-dotenv  # .env 파일 로드용
 

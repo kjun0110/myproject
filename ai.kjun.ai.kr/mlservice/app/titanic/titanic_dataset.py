@@ -145,8 +145,9 @@ class TitanicDataSet(object):
         - male=0, female=1
         """
         if 'Sex' in self.train.columns and 'Sex' in self.test.columns:
-            [df.update(pd.DataFrame({'Gender': df['Sex'].map({'male': 0, 'female': 1}).astype(int)}, index=df.index)) for df in [self.train, self.test]]
-            [df.drop(columns=['Sex'], inplace=True) for df in [self.train, self.test]]
+            for df in [self.train, self.test]:
+                df['Gender'] = df['Sex'].map({'male': 0, 'female': 1}).astype(int)
+                df.drop(columns=['Sex'], inplace=True)
         return self
 
     def age_ratio(self) -> object:

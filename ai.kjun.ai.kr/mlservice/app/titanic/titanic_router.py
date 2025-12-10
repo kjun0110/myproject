@@ -1,14 +1,14 @@
 from fastapi import APIRouter, HTTPException, Query
 from fastapi.responses import JSONResponse
-from .titanic_service import PassengerService
+from .titanic_service import TitanicService
 import logging
 
 logger = logging.getLogger(__name__)
 
 titanic_router = APIRouter(prefix="/titanic", tags=["titanic"])
 
-# PassengerService 인스턴스
-service = PassengerService()
+# TitanicService 인스턴스
+service = TitanicService()
 
 
 @titanic_router.get("/")

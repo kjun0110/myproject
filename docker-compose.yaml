@@ -73,8 +73,15 @@ services:
     container_name: mlservice
     ports:
       - "9010:9010"
+    environment:
+      - KAKAO_REST_API_KEY=${KAKAO_REST_API_KEY}
+      - KAKAO_ADMIN_KEY=${KAKAO_ADMIN_KEY}
+      - KAKAO_JAVASCRIPT_KEY=${KAKAO_JAVASCRIPT_KEY}
+      - KAKAO_NATIVE_KEY=${KAKAO_NATIVE_KEY}
+      - KAKAO_REDIRECT_URI=${KAKAO_REDIRECT_URI}
     volumes:
       - ./ai.kjun.ai.kr/mlservice/app/kaggle:/app/kaggle
+      - ./ai.kjun.ai.kr/mlservice/app/seoullab_crime/save:/app/seoullab_crime/save
     networks:
       spring-network:
 

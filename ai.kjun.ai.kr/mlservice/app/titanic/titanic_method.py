@@ -2,9 +2,10 @@ from titanic.titanic_dataset import TitanicDataSet
 from typing import Tuple
 import pandas as pd
 import numpy as np
+from pandas import DataFrame
 import os
 import logging
-from pandas import DataFrame
+
 
 logger = logging.getLogger(__name__)
 
@@ -14,7 +15,6 @@ class TitanicMethod(object):
     def __init__(self):
         #데이터셋 객체 생성
         self.dataset = TitanicDataSet()
-
 
     def read_csv(self, fname: str) -> pd.DataFrame:
         #train.csv 파일을 읽어와서 데이터셋 객체에 저장(데이터 프레임 작성)

@@ -32,7 +32,7 @@ except (ImportError, OSError) as e:
     lgb = type('lgb', (), {'LGBMClassifier': DummyLGBM})()
 
 
-class PassengerService:
+class TitanicService:
     """Titanic Passenger CRUD 서비스"""
     
     def __init__(self):
