@@ -4,9 +4,19 @@ pandas
 numpy
 scikit-learn  # datasets 포함 (from sklearn import datasets)
 lightgbm
-icecream
+requests  # HTTP 요청용 (카카오 맵 API)
+
+#엑셀파일읽기기
 openpyxl  # Excel 파일 읽기용 (.xlsx)
 xlrd  # Excel 파일 읽기용 (.xls)
-requests  # HTTP 요청용 (카카오 맵 API)
-python-dotenv  # .env 파일 로드용
 
+#디버깅 도구
+icecream
+
+#환경변수관리
+python-dotenv  # .env 파일 로드용
+folium>=0.12.0  # 지도 시각화용
+
+#시각화
+matplotlib  # 히트맵 생성용
+seaborn  # 히트맵 생성용

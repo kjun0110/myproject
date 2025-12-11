@@ -160,6 +160,131 @@ class SeoullabService:
         crime_with_gu = crime_with_gu.groupby(자치구_col, as_index=False).agg(agg_dict)
         
         logger.info(f"crime_with_gu.csv 파일 읽기 및 편집 완료: {crime_with_gu.shape}")
+        
+        # 범죄 발생비율 히트맵 생성
+        logger.info("범죄 발생비율 히트맵 생성 시작...")
+        try:
+            import matplotlib
+            matplotlib.use('Agg')  # 백엔드 설정 (GUI 없이 사용, import 전에 설정)
+            import matplotlib.pyplot as plt
+            import matplotlib.font_manager as fm
+            import seaborn as sns
+            import platform
+            
+            # 한글 폰트 설정 (OS별로 다른 폰트 사용)
+            plt.rcParams['axes.unicode_minus'] = False  # 마이너스 기호 깨짐 방지
+            
+            # 시스템에 설치된 한글 폰트 찾기
+            system = platform.system()
+            korean_fonts = []
+            
+            if system == 'Windows':
+                korean_fonts = ['Malgun Gothic', 'NanumGothic', 'Gulim', 'Batang']
+            elif system == 'Darwin':  # macOS
+                korean_fonts = ['AppleGothic', 'NanumGothic', 'Arial Unicode MS']
+            else:  # Linux
+                korean_fonts = ['NanumGothic', 'NanumBarunGothic', 'DejaVu Sans', 'Noto Sans CJK KR']
+            
+            # 폰트 캐시 초기화 (새로 설치된 폰트 인식)
+            try:
+                fm._rebuild()
+            except:
+                pass
+            
+            # 사용 가능한 폰트 찾기
+            available_fonts = [f.name for f in fm.fontManager.ttflist]
+            font_found = False
+            
+            for font_name in korean_fonts:
+                if font_name in available_fonts:
+                    plt.rcParams['font.family'] = font_name
+                    logger.info(f"한글 폰트 설정 완료: {font_name}")
+                    font_found = True
+                    break
+            
+            # 폰트를 찾지 못한 경우, 폰트 경로 직접 지정 시도
+            if not font_found:
+                # NanumGothic 폰트 경로 시도 (일반적인 경로)
+                nanum_paths = [
+                    '/usr/share/fonts/truetype/nanum/NanumGothic.ttf',
+                    '/usr/share/fonts/truetype/nanum/NanumBarunGothic.ttf',
+                    '/System/Library/Fonts/AppleGothic.ttf',
+                    'C:/Windows/Fonts/malgun.ttf',
+                    'C:/Windows/Fonts/gulim.ttc'
+                ]
+                
+                for font_path in nanum_paths:
+                    try:
+                        from pathlib import Path
+                        if Path(font_path).exists():
+                            font_prop = fm.FontProperties(fname=font_path)
+                            plt.rcParams['font.family'] = font_prop.get_name()
+                            logger.info(f"한글 폰트 경로로 설정 완료: {font_path}")
+                            font_found = True
+                            break
+                    except:
+                        continue
+                
+                # 여전히 폰트를 찾지 못한 경우 기본 설정
+                if not font_found:
+                    logger.warning("한글 폰트를 찾을 수 없습니다. 기본 폰트를 사용합니다.")
+                    # 한글 대신 영문으로 표시되거나 깨질 수 있음
+                    plt.rcParams['font.family'] = 'DejaVu Sans'
+            
+            # save_path 확인 및 생성
+            save_path = Path(self.method.dataset.sname)
+            save_path.mkdir(exist_ok=True)
+            logger.info(f"히트맵 저장 경로: {save_path}")
+            
+            # 컬럼 목록 가져오기
+            columns = crime_with_gu.columns.tolist()
+            자치구_col = columns[0]  # 1번째 컬럼: 자치구
+            
+            # 발생 컬럼만 추출 (검거 제외)
+            발생_cols = [col for col in crime_with_gu.columns if '발생' in col]
+            
+            if not 발생_cols:
+                logger.warning("발생 컬럼을 찾을 수 없습니다.")
+            else:
+                # 히트맵용 데이터프레임 생성
+                heatmap_data = crime_with_gu.set_index(자치구_col)[발생_cols]
+                
+                # 범죄 유형명 정리 (컬럼명에서 ' 발생' 제거)
+                heatmap_data.columns = [col.replace(' 발생', '') for col in heatmap_data.columns]
+                
+                # 전체 대비 비율로 정규화 (각 범죄 유형별로 정규화)
+                heatmap_data_normalized = heatmap_data.div(heatmap_data.sum(axis=0), axis=1) * 100
+                
+                # 히트맵 생성
+                plt.figure(figsize=(12, 10))
+                sns.heatmap(
+                    heatmap_data_normalized,
+                    annot=True,
+                    fmt='.1f',
+                    cmap='YlOrRd',
+                    cbar_kws={'label': '발생 비율 (%)'},
+                    linewidths=0.5,
+                    linecolor='gray'
+                )
+                plt.title('서울시 자치구별 범죄 발생비율 히트맵', fontsize=16, fontweight='bold', pad=20)
+                plt.xlabel('범죄 유형', fontsize=12)
+                plt.ylabel('자치구', fontsize=12)
+                plt.tight_layout()
+                
+                # save 폴더에 저장
+                heatmap_file_path = save_path / 'crime_heatmap.png'
+                plt.savefig(heatmap_file_path, dpi=300, bbox_inches='tight')
+                plt.close()
+                
+                logger.info(f"범죄 발생비율 히트맵 저장 완료: {heatmap_file_path}")
+                logger.info(f"파일 존재 확인: {heatmap_file_path.exists()}")
+            
+        except ImportError as e:
+            logger.warning(f"히트맵 생성에 필요한 라이브러리가 없습니다: {e}. matplotlib, seaborn을 설치해주세요.")
+        except Exception as e:
+            logger.error(f"히트맵 생성 중 오류 발생: {e}")
+            import traceback
+            logger.error(traceback.format_exc())
 
         
         # 데이터셋 객체에 저장

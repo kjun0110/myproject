@@ -17,6 +17,34 @@ async def root():
     return {"message": "Seoul Crime API"}
 
 
+@seoullab_router.get("/submit")
+async def submit():
+    """
+    최종 결과물 제출 (히트맵 생성 및 저장)
+    
+    Returns:
+        dict: 히트맵 생성 및 저장 결과
+    """
+    try:
+        result = service.submit()
+        return JSONResponse(content={
+            "success": True,
+            "data": result
+        })
+    except ImportError as e:
+        import traceback
+        error_msg = f"필요한 패키지가 설치되지 않았습니다: {str(e)}. matplotlib, seaborn을 설치해주세요."
+        logger.error(error_msg)
+        logger.error(traceback.format_exc())
+        raise HTTPException(status_code=500, detail=error_msg)
+    except Exception as e:
+        import traceback
+        error_msg = f"제출 오류 발생: {str(e)}"
+        logger.error(error_msg)
+        logger.error(traceback.format_exc())
+        raise HTTPException(status_code=500, detail=error_msg)
+
+
 @seoullab_router.get("/preprocess")
 async def preprocess():
     """전처리 수행 및 결과 조회"""

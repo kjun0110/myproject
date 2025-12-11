@@ -11,6 +11,7 @@ class SeoullabData(object):
         _cctv: pd.DataFrame = None
         _crime: pd.DataFrame = None
         _pop: pd.DataFrame = None
+        _crime_with_gu: pd.DataFrame = None
         #비지도 _id: str = ''
         #비지도 _label: str = ''
 
@@ -43,6 +44,11 @@ class SeoullabData(object):
         def pop(self) -> pd.DataFrame: return self._pop
         @pop.setter
         def pop(self, pop): self._pop = pop
+
+        @property
+        def crime_with_gu(self) -> pd.DataFrame: return self._crime_with_gu
+        @crime_with_gu.setter
+        def crime_with_gu(self, crime_with_gu): self._crime_with_gu = crime_with_gu
 
         @property
         def id(self) -> str: return self._id
