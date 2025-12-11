@@ -117,14 +117,61 @@ class SeoullabService:
             logger.error(traceback.format_exc())
             raise
         
+        # crime_with_gu.csv 파일 읽기 및 편집
+        logger.info("crime_with_gu.csv 파일 읽기 시작...")
+        # 저장할 때 사용한 경로와 동일한 경로 사용
+        from pathlib import Path
+        save_path = Path(self.method.dataset.sname)
+        crime_file_path = save_path / 'crime_with_gu.csv'
+        if not crime_file_path.exists():
+            raise FileNotFoundError(f"파일을 찾을 수 없습니다: {crime_file_path}")
+        crime_with_gu = pd.read_csv(crime_file_path)
+        
+        # crime_with_gu 편집
+        # 1번째 컬럼 자치구의 값이 중복되는 경우 중복되는 행들을 합친다.
+        # 1번째 컬럼인 자치구의 경우 중복되면 하나의 값만 사용한다.
+        # 2번째 컬럼인 관서명의 경우 자치구 컬럼의 값이 중복되면 ','를 사용하여 합친다.
+        # 그외 나머지 컬럼인 ~~발생, ~~검거 컬럼의 경우 자치구 컬럼의 값이 중복되는 경우 해당 행의 숫자를 더하여 나타낸다.
+        
+        # 컬럼 목록 가져오기
+        columns = crime_with_gu.columns.tolist()
+        자치구_col = columns[0]  # 1번째 컬럼: 자치구
+        관서명_col = columns[1]  # 2번째 컬럼: 관서명
+        나머지_cols = columns[2:]  # 나머지 컬럼들 (~~발생, ~~검거)
+        
+        # 숫자 컬럼들을 숫자형으로 변환 (쉼표 제거 후 변환)
+        for col in 나머지_cols:
+            if crime_with_gu[col].dtype == 'object':
+                # 문자열인 경우 쉼표 제거 후 숫자로 변환
+                crime_with_gu[col] = crime_with_gu[col].astype(str).str.replace(',', '')
+                crime_with_gu[col] = pd.to_numeric(crime_with_gu[col], errors='coerce').fillna(0)
+        
+        # 자치구별로 그룹화하여 집계
+        agg_dict = {
+            자치구_col: 'first',  # 자치구: 첫 번째 값만 사용
+            관서명_col: lambda x: ','.join(x.astype(str)),  # 관서명: 쉼표로 합치기
+        }
+        
+        # 나머지 컬럼들은 합계
+        for col in 나머지_cols:
+            agg_dict[col] = 'sum'
+        
+        # 그룹화 및 집계 수행
+        crime_with_gu = crime_with_gu.groupby(자치구_col, as_index=False).agg(agg_dict)
+        
+        logger.info(f"crime_with_gu.csv 파일 읽기 및 편집 완료: {crime_with_gu.shape}")
+
+        
         # 데이터셋 객체에 저장
         self.method.dataset.cctv = cctv
         self.method.dataset.crime = crime
         self.method.dataset.pop = pop
+        self.method.dataset.crime_with_gu = crime_with_gu
         
         logger.info(f"CCTV 데이터: {cctv.shape}")
         logger.info(f"Crime 데이터: {crime.shape}")
         logger.info(f"Pop 데이터: {pop.shape}")
+        logger.info(f"crime_with_gu 데이터: {crime_with_gu.shape}")
         logger.info("🦝🦝전처리 완료")
         
         # 각 데이터프레임의 상위 5개 행을 반환
@@ -221,7 +268,7 @@ class SeoullabService:
         특정 타입의 데이터만 반환
         
         Args:
-            data_type: 'cctv', 'crime', 'pop' 중 하나
+            data_type: 'cctv', 'crime', 'pop', 'crime_with_gu' 중 하나
         
         Returns:
             해당 데이터프레임의 상위 5개 행 정보
@@ -288,5 +335,10 @@ class SeoullabService:
             if df is None:
                 raise ValueError(f"{data_type} 데이터가 로드되지 않았습니다.")
             return df_to_dict(df)
+        elif data_type.lower() == 'crime_with_gu':
+            df = self.method.dataset.crime_with_gu
+            if df is None:
+                raise ValueError(f"{data_type} 데이터가 로드되지 않았습니다.")
+            return df_to_dict(df)
         else:
-            raise ValueError(f"지원하지 않는 데이터 타입입니다: {data_type}. 'cctv', 'crime', 'pop' 중 하나를 선택하세요.")
+            raise ValueError(f"지원하지 않는 데이터 타입입니다: {data_type}. 'cctv', 'crime', 'pop', 'crime_with_gu' 중 하나를 선택하세요.")

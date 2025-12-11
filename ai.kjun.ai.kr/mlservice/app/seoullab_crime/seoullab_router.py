@@ -52,12 +52,13 @@ async def get_preprocess_data(data_type: str):
     특정 타입의 전처리 데이터만 조회
     
     Args:
-        data_type: 'cctv', 'crime', 'pop' 중 하나
+        data_type: 'cctv', 'crime', 'pop', 'crime_with_gu' 중 하나
     
     Example:
         GET /seoullab/preprocess/cctv
         GET /seoullab/preprocess/crime
         GET /seoullab/preprocess/pop
+        GET /seoullab/preprocess/crime_with_gu
     """
     try:
         result = service.get_data_by_type(data_type)
