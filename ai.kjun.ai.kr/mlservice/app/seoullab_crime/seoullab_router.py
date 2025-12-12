@@ -17,13 +17,35 @@ async def root():
     return {"message": "Seoul Crime API"}
 
 
+@seoullab_router.get("/save")
+async def save():
+    """
+    crime_with_gu.csv 파일 저장
+    
+    Returns:
+        dict: 저장 결과
+    """
+    try:
+        result = service.save_csv()
+        return JSONResponse(content={
+            "success": True,
+            "data": result
+        })
+    except Exception as e:
+        import traceback
+        error_msg = f"CSV 저장 오류 발생: {str(e)}"
+        logger.error(error_msg)
+        logger.error(traceback.format_exc())
+        raise HTTPException(status_code=500, detail=error_msg)
+
+
 @seoullab_router.get("/submit")
 async def submit():
     """
-    최종 결과물 제출 (히트맵 생성 및 저장)
+    최종 결과물 제출 (crime_with_gu.csv 및 히트맵 생성 및 저장)
     
     Returns:
-        dict: 히트맵 생성 및 저장 결과
+        dict: 저장 결과
     """
     try:
         result = service.submit()
@@ -80,13 +102,15 @@ async def get_preprocess_data(data_type: str):
     특정 타입의 전처리 데이터만 조회
     
     Args:
-        data_type: 'cctv', 'crime', 'pop', 'crime_with_gu' 중 하나
+        data_type: 'cctv', 'crime', 'pop', 'crime_with_gu', 'crime_pop', 'cctv_crime_pop' 중 하나
     
     Example:
         GET /seoullab/preprocess/cctv
         GET /seoullab/preprocess/crime
         GET /seoullab/preprocess/pop
         GET /seoullab/preprocess/crime_with_gu
+        GET /seoullab/preprocess/crime_pop
+        GET /seoullab/preprocess/cctv_crime_pop
     """
     try:
         result = service.get_data_by_type(data_type)
@@ -103,4 +127,28 @@ async def get_preprocess_data(data_type: str):
         logger.error(f"데이터 조회 오류 발생: {e}")
         logger.error(traceback.format_exc())
         raise HTTPException(status_code=500, detail=str(e))
+
+
+@seoullab_router.get("/map")
+async def create_map():
+    """
+    서울시 자치구별 범죄 데이터를 지도로 시각화
+    
+    Returns:
+        dict: 저장된 지도 파일 경로 정보
+    """
+    try:
+        logger.info("서울시 범죄 지도 생성 시작...")
+        result = service.create_crime_map()
+        return JSONResponse(content={
+            "success": True,
+            "message": "지도가 성공적으로 생성되었습니다.",
+            "data": result
+        })
+    except Exception as e:
+        import traceback
+        error_msg = f"지도 생성 오류 발생: {str(e)}"
+        logger.error(error_msg)
+        logger.error(traceback.format_exc())
+        raise HTTPException(status_code=500, detail=error_msg)
 

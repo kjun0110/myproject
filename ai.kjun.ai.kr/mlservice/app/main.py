@@ -4,6 +4,7 @@ from grade.grade_router import grade_router
 from seoul_crime.seoul_router import seoul_router
 from seoullab_crime.seoullab_router import seoullab_router
 from us_unemployment.router import usa_router
+from nlp.nlp_router import nlp_router
 import logging
 from dotenv import load_dotenv
 import os
@@ -65,6 +66,9 @@ app.include_router(seoullab_router)
 
 # USA Unemployment 라우터 연결
 app.include_router(usa_router)
+
+# NLP 라우터 연결
+app.include_router(nlp_router)
 
 @app.get("/")
 async def root():

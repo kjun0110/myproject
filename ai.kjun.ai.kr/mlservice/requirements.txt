@@ -20,3 +20,12 @@ folium>=0.12.0  # 지도 시각화용
 #시각화
 matplotlib  # 히트맵 생성용
 seaborn  # 히트맵 생성용
+
+# NLP 관련 패키지
+nltk  # 자연어 처리
+wordcloud  # 워드클라우드 생성
+sentencepiece  # 토크나이저
+konlpy  # 한국어 NLP (Java 필요)
+opencv-python  # 이미지 처리
+JPype1  # Java 연동 (KoNLPy용)
+Pillow  # 이미지 처리

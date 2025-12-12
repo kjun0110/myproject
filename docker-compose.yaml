@@ -83,6 +83,7 @@ services:
       - ./ai.kjun.ai.kr/mlservice/app/kaggle:/app/kaggle
       - ./ai.kjun.ai.kr/mlservice/app/seoullab_crime/save:/app/seoullab_crime/save
       - ./ai.kjun.ai.kr/mlservice/app/us_unemployment/save:/app/us_unemployment/save
+      - ./ai.kjun.ai.kr/mlservice/app/nlp/save:/app/nlp/save
     networks:
       spring-network:
 
