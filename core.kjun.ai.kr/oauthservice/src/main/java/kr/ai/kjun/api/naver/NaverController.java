@@ -1,6 +1,8 @@
 package kr.ai.kjun.api.naver;
 
 import kr.ai.kjun.api.jwt.JwtTokenProvider;
+import kr.ai.kjun.api.jwt.RefreshTokenService;
+import kr.ai.kjun.api.service.UserManagementService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -17,13 +19,21 @@ public class NaverController {
 
     private final NaverService naverService;
     private final JwtTokenProvider jwtTokenProvider;
+    private final UserManagementService userManagementService;
+    private final RefreshTokenService refreshTokenService;
 
     @Value("${FRONT_LOGIN_CALLBACK_URL}")
     private String frontendLoginCallbackUrl;
 
-    public NaverController(NaverService naverService, JwtTokenProvider jwtTokenProvider) {
+    public NaverController(
+            NaverService naverService,
+            JwtTokenProvider jwtTokenProvider,
+            UserManagementService userManagementService,
+            RefreshTokenService refreshTokenService) {
         this.naverService = naverService;
         this.jwtTokenProvider = jwtTokenProvider;
+        this.userManagementService = userManagementService;
+        this.refreshTokenService = refreshTokenService;
     }
 
     // 네이버 로그인 URL 반환
@@ -63,10 +73,27 @@ public class NaverController {
 
         try {
             kr.ai.kjun.api.naver.dto.NaverUserInfo userInfo = naverService.authenticateAndExtractUser(code, state);
-            String jwtToken = generateJwtToken(userInfo);
 
-            System.out.println("✅ [네이버 콜백] 로그인 성공 - ID: " + userInfo.getExtractedId());
-            return redirectToSuccess(userInfo, jwtToken);
+            // 사용자 정보를 User Service에 저장 또는 업데이트 (HTTP 호출)
+            Map<String, Object> savedUser = userManagementService.saveOrUpdateUser(
+                    "NAVER",
+                    userInfo.getExtractedId(),
+                    userInfo.getExtractedEmail(),
+                    userInfo.getExtractedNickname(),
+                    userInfo.getExtractedProfileImage());
+
+            // JWT Access Token 생성 (User Service에서 받은 사용자 ID 사용)
+            Long userId = ((Number) savedUser.get("id")).longValue();
+            String jwtToken = jwtTokenProvider.generateToken(
+                    userId,
+                    (String) savedUser.get("email"),
+                    (String) savedUser.get("nickname"));
+
+            // Refresh Token 생성 및 Redis에 저장
+            String refreshToken = refreshTokenService.generateAndSaveRefreshToken(userId);
+
+            System.out.println("✅ [네이버 콜백] 로그인 성공 - User ID: " + userId);
+            return redirectToSuccess(savedUser, jwtToken, refreshToken);
 
         } catch (Exception e) {
             System.err.println("❌ [네이버 콜백] 로그인 실패: " + e.getMessage());
@@ -100,10 +127,27 @@ public class NaverController {
 
         try {
             kr.ai.kjun.api.naver.dto.NaverUserInfo userInfo = naverService.authenticateAndExtractUser(code, state);
-            String jwtToken = generateJwtToken(userInfo);
 
-            System.out.println("✅ [네이버 로그인] 성공 - ID: " + userInfo.getExtractedId());
-            return ResponseEntity.ok(buildSuccessResponse(userInfo, jwtToken));
+            // 사용자 정보를 User Service에 저장 또는 업데이트 (HTTP 호출)
+            Map<String, Object> savedUser = userManagementService.saveOrUpdateUser(
+                    "NAVER",
+                    userInfo.getExtractedId(),
+                    userInfo.getExtractedEmail(),
+                    userInfo.getExtractedNickname(),
+                    userInfo.getExtractedProfileImage());
+
+            // JWT Access Token 생성 (User Service에서 받은 사용자 ID 사용)
+            Long userId = ((Number) savedUser.get("id")).longValue();
+            String jwtToken = jwtTokenProvider.generateToken(
+                    userId,
+                    (String) savedUser.get("email"),
+                    (String) savedUser.get("nickname"));
+
+            // Refresh Token 생성 및 Redis에 저장
+            String refreshToken = refreshTokenService.generateAndSaveRefreshToken(userId);
+
+            System.out.println("✅ [네이버 로그인] 성공 - User ID: " + userId);
+            return ResponseEntity.ok(buildSuccessResponse(savedUser, jwtToken, refreshToken));
 
         } catch (Exception e) {
             System.err.println("❌ [네이버 로그인] 실패: " + e.getMessage());
@@ -113,27 +157,19 @@ public class NaverController {
         }
     }
 
-    // JWT 토큰 생성 (네이버 ID는 String이므로 해시코드로 변환)
-    private String generateJwtToken(kr.ai.kjun.api.naver.dto.NaverUserInfo userInfo) {
-        Long userId = Long.valueOf(userInfo.getExtractedId().hashCode());
-        return jwtTokenProvider.generateToken(
-                userId,
-                userInfo.getExtractedEmail(),
-                userInfo.getExtractedNickname());
-    }
-
     // 성공 응답 생성
-    private Map<String, Object> buildSuccessResponse(kr.ai.kjun.api.naver.dto.NaverUserInfo userInfo, String jwtToken) {
+    private Map<String, Object> buildSuccessResponse(Map<String, Object> user, String jwtToken, String refreshToken) {
         Map<String, Object> response = new HashMap<>();
         response.put("success", true);
-        response.put("token", jwtToken);
+        response.put("token", jwtToken); // Access Token
+        response.put("refreshToken", refreshToken); // Refresh Token
 
-        Map<String, Object> user = new HashMap<>();
-        user.put("id", userInfo.getExtractedId());
-        user.put("email", userInfo.getExtractedEmail());
-        user.put("nickname", userInfo.getExtractedNickname());
-        user.put("profileImage", userInfo.getExtractedProfileImage());
-        response.put("user", user);
+        Map<String, Object> userInfo = new HashMap<>();
+        userInfo.put("id", user.get("id"));
+        userInfo.put("email", user.get("email"));
+        userInfo.put("nickname", user.get("nickname"));
+        userInfo.put("profileImage", user.get("profileImageUrl"));
+        response.put("user", userInfo);
 
         return response;
     }
@@ -147,15 +183,16 @@ public class NaverController {
     }
 
     // 성공 리다이렉트
-    private ResponseEntity<?> redirectToSuccess(kr.ai.kjun.api.naver.dto.NaverUserInfo userInfo, String jwtToken) {
+    private ResponseEntity<?> redirectToSuccess(Map<String, Object> user, String jwtToken, String refreshToken) {
         String encodedToken = URLEncoder.encode(jwtToken, StandardCharsets.UTF_8);
-        String encodedEmail = URLEncoder.encode(userInfo.getExtractedEmail(), StandardCharsets.UTF_8);
-        String encodedNickname = URLEncoder.encode(userInfo.getExtractedNickname(), StandardCharsets.UTF_8);
-        String encodedId = URLEncoder.encode(userInfo.getExtractedId(), StandardCharsets.UTF_8);
+        String encodedRefreshToken = URLEncoder.encode(refreshToken, StandardCharsets.UTF_8);
+        String encodedEmail = URLEncoder.encode((String) user.get("email"), StandardCharsets.UTF_8);
+        String encodedNickname = URLEncoder.encode((String) user.get("nickname"), StandardCharsets.UTF_8);
+        Long userId = ((Number) user.get("id")).longValue();
 
         String redirectUrl = String.format(
-                "%s/auth/naver/success?token=%s&id=%s&email=%s&nickname=%s",
-                frontendLoginCallbackUrl, encodedToken, encodedId, encodedEmail, encodedNickname);
+                "%s/auth/naver/success?token=%s&refreshToken=%s&id=%d&email=%s&nickname=%s",
+                frontendLoginCallbackUrl, encodedToken, encodedRefreshToken, userId, encodedEmail, encodedNickname);
 
         return ResponseEntity.status(HttpStatus.FOUND)
                 .header("Location", redirectUrl)

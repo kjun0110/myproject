@@ -7,5 +7,14 @@ dependencies {
 	// 현재는 직접 URL 사용하지만, 나중에 쿠버네티스에서 lb://oauth-service 사용 가능
 	implementation 'org.springframework.cloud:spring-cloud-starter-loadbalancer'
 	implementation 'org.springdoc:springdoc-openapi-starter-webflux-ui:2.6.0'
+	
+	// Redis (Upstash) - Gateway에서 JWT 블랙리스트 및 Rate Limit에 사용
+	implementation 'org.springframework.boot:spring-boot-starter-data-redis-reactive'
+	
+	// JWT 검증
+	implementation 'io.jsonwebtoken:jjwt-api:0.12.3'
+	runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.12.3'
+	runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.12.3'
+	
 	developmentOnly 'org.springframework.boot:spring-boot-devtools'
 }

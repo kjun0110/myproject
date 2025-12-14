@@ -114,8 +114,8 @@ export async function requestSocialLogin(
 ): Promise<AuthResponse> {
     const endpoint =
         provider === "kakao"
-            ? "/api/auth/kakao/login"
-            : `/api/auth/${provider}/login`;
+            ? "/api/oauth/kakao/login"
+            : `/api/oauth/${provider}/login`;
 
     const response = await fetch(`${API_GATEWAY_URL}${endpoint}`, {
         method: "POST",

@@ -38,6 +38,11 @@ dependencies {
 	
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 	implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-client'
+	
+	// PostgreSQL (Neon DB)
+	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+	implementation 'org.postgresql:postgresql'
+	
 	// developmentOnly 'org.springframework.boot:spring-boot-devtools'  // Docker 빌드에서는 불필요
 	
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'

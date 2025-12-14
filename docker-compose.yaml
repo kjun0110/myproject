@@ -6,15 +6,20 @@ services:
     container_name: gatewayserver
     ports:
       - "8080:8080"
+    environment:
+      - JWT_SECRET=${JWT_SECRET}
+      - UPSTASH_REDIS_HOST=${UPSTASH_REDIS_HOST}
+      - UPSTASH_REDIS_PORT=${UPSTASH_REDIS_PORT}
+      - UPSTASH_REDIS_PASSWORD=${UPSTASH_REDIS_PASSWORD}
     networks:
       spring-network:
 
 
-  oauth-service:
+  oauthservice:
     build:
       context: ./core.kjun.ai.kr/oauthservice
       dockerfile: ./Dockerfile
-    container_name: oauthservice
+    container_name: oauthserviceper
     ports:
       - "8091:8091"
     environment:
@@ -29,17 +34,26 @@ services:
       - FRONT_LOGIN_CALLBACK_URL=${FRONT_LOGIN_CALLBACK_URL}
       - JWT_SECRET=${JWT_SECRET}
       - JWT_EXPIRATION=${JWT_EXPIRATION:-86400000}
+      - UPSTASH_REDIS_HOST=${UPSTASH_REDIS_HOST}
+      - UPSTASH_REDIS_PORT=${UPSTASH_REDIS_PORT}
+      - UPSTASH_REDIS_PASSWORD=${UPSTASH_REDIS_PASSWORD}
+      - USER_SERVICE_URL=${USER_SERVICE_URL:-http://userservice:8092}
     networks:
       spring-network:
 
 
-  user-service:
+  userservice:
     build:
       context: ./core.kjun.ai.kr/userservice
       dockerfile: ./Dockerfile
-    container_name: userservice
+    container_name: userserviceper
     ports:
       - "8092:8092"
+    environment:
+      - NEON_DB_HOST=${NEON_DB_HOST}
+      - NEON_DB_NAME=${NEON_DB_NAME}
+      - NEON_DB_USER=${NEON_DB_USER}
+      - NEON_DB_PASSWORD=${NEON_DB_PASSWORD}
     networks:
       spring-network:
 
@@ -48,7 +62,7 @@ services:
     build:
       context: ./ai.kjun.ai.kr/crawlerservice
       dockerfile: ./Dockerfile
-    container_name: crawlerservice
+    container_name: crawlerserviceper
     ports:
       - "9012:9012"
     networks:
@@ -59,7 +73,7 @@ services:
     build:
       context: ./ai.kjun.ai.kr/authservice
       dockerfile: ./Dockerfile
-    container_name: authservice
+    container_name: authserviceper
     ports:
       - "9011:9011"
     networks:
@@ -70,7 +84,7 @@ services:
     build:
       context: ./ai.kjun.ai.kr/mlservice
       dockerfile: ./Dockerfile
-    container_name: mlservice
+    container_name: mlserviceper
     ports:
       - "9010:9010"
     environment:

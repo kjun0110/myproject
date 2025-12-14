@@ -41,10 +41,13 @@ dependencies {
 	// implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-client'
 	// developmentOnly 'org.springframework.boot:spring-boot-devtools'  // Docker 빌드에서는 불필요
 	
-	// JWT (JSON Web Token)
+    // JWT (JSON Web Token)
     implementation 'io.jsonwebtoken:jjwt-api:0.12.3'  
     runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.12.3'
     runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.12.3'
+    
+    // Redis (Upstash)
+    implementation 'org.springframework.boot:spring-boot-starter-data-redis'
 	
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'

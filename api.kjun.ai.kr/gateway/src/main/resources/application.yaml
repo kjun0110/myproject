@@ -9,7 +9,6 @@ spring:
       enabled: false
     loadbalancer:
       enabled: true
-    
     gateway:
       # CORS 설정: 프론트엔드(localhost:4000)에서의 요청 허용
       globalcors:
@@ -30,14 +29,27 @@ spring:
       
       # 라우팅 설정
       routes:
-        # OAuth Service API: /api/auth/** → oauth-service로 라우팅
+        # OAuth Service API: /api/oauth/** → oauth-service로 라우팅 (로그인, 토큰 갱신, 로그아웃)
         - id: oauth-service
           uri: http://oauthservice:8091
           predicates:
-            - Path=/api/auth/**
+            - Path=/api/oauth/**
           filters:
-            # /api/auth/kakao → /kakao로 경로 변환
-            - RewritePath=/api/auth/(?<segment>.*), /${segment}
+            # /api/oauth/kakao/login → /kakao/login
+            # /api/oauth/naver/login → /naver/login
+            # /api/oauth/google/login → /google/login
+            # /api/oauth/refresh → /oauth/refresh
+            # /api/oauth/logout → /oauth/logout
+            - RewritePath=/api/oauth/(?<segment>.*), /${segment}
+        
+        # User Service API: /api/users/** → user-service로 라우팅
+        - id: user-service
+          uri: http://userservice:8092
+          predicates:
+            - Path=/api/users/**
+          filters:
+            # /api/users/** → /api/users/**로 경로 유지 (User Service에서 /api/users로 매핑됨)
+            # RewritePath 불필요 (User Service가 이미 /api/users로 매핑)
         
         # 카카오 OAuth 콜백: /oauth/kakao/callback → /kakao/callback
         - id: kakao-callback
@@ -124,6 +136,25 @@ spring:
             - Path=/api/ml/openapi.json
           filters:
             - RewritePath=/api/ml/openapi.json, /openapi.json
+  
+  # Redis (Upstash) 설정 - Gateway에서 JWT 블랙리스트 및 Rate Limit에 사용
+  data:
+    redis:
+      host: ${UPSTASH_REDIS_HOST}
+      port: ${UPSTASH_REDIS_PORT}
+      password: ${UPSTASH_REDIS_PASSWORD}
+      ssl:
+        enabled: true
+      timeout: 2000ms
+      lettuce:
+        pool:
+          max-active: 8
+          max-idle: 8
+          min-idle: 0
+  
+  # JWT 설정
+  jwt:
+    secret: ${JWT_SECRET}
 
 # 서버 포트
 server:

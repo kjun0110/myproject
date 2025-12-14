@@ -10,6 +10,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 /**
  * JWT 토큰 생성 및 검증 (WebFlux 없이)
@@ -24,15 +25,14 @@ public class JwtTokenProvider {
         this.jwtProperties = jwtProperties;
         // HMAC-SHA 알고리즘을 위한 SecretKey 생성
         this.secretKey = Keys.hmacShaKeyFor(
-            jwtProperties.getSecret().getBytes(StandardCharsets.UTF_8)
-        );
+                jwtProperties.getSecret().getBytes(StandardCharsets.UTF_8));
     }
 
     /**
      * JWT 토큰 생성
      * 
-     * @param userId 사용자 ID
-     * @param email 이메일
+     * @param userId   사용자 ID
+     * @param email    이메일
      * @param nickname 닉네임
      * @return JWT 토큰
      */
@@ -45,8 +45,12 @@ public class JwtTokenProvider {
         claims.put("email", email);
         claims.put("nickname", nickname);
 
+        // JWT ID (jti) 생성 - 블랙리스트 관리에 사용
+        String jti = UUID.randomUUID().toString();
+
         return Jwts.builder()
                 .claims(claims)
+                .id(jti) // JWT ID 추가
                 .subject(String.valueOf(userId))
                 .issuedAt(now)
                 .expiration(expiryDate)
@@ -98,4 +102,3 @@ public class JwtTokenProvider {
                 .getPayload();
     }
 }
-

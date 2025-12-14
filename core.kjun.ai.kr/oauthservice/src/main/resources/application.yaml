@@ -4,6 +4,21 @@ spring:
   cloud:
     config:
       enabled: false
+  
+  # Redis (Upstash) 설정
+  data:
+    redis:
+      host: ${UPSTASH_REDIS_HOST}
+      port: ${UPSTASH_REDIS_PORT}
+      password: ${UPSTASH_REDIS_PASSWORD}
+      ssl:
+        enabled: true
+      timeout: 2000ms
+      lettuce:
+        pool:
+          max-active: 8
+          max-idle: 8
+          min-idle: 0
 
 kakao:
   rest-api-key: ${KAKAO_REST_API_KEY}
@@ -21,7 +36,8 @@ google:
   
 jwt:
   secret: ${JWT_SECRET}
-  expiration: ${JWT_EXPIRATION:86400000} # 기본 24시간
+  expiration: ${JWT_EXPIRATION:86400000} # 기본 24시간 (24시간)
+  refresh-expiration: ${JWT_REFRESH_EXPIRATION:604800000} # 기본 7일 (7일)
 
 # Eureka 클라이언트 비활성화 (Gateway에서 직접 URL 사용)
 eureka:
