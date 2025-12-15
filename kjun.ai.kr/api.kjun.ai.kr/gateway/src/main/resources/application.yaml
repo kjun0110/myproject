@@ -1,0 +1,229 @@
+spring:
+  application:
+    name: gateway
+  
+  cloud:
+    config:
+      enabled: false
+    discovery:
+      enabled: false
+    loadbalancer:
+      enabled: true
+    gateway:
+      # CORS 설정: 프론트엔드(localhost:4000)에서의 요청 허용
+      globalcors:
+        cors-configurations:
+          '[/**]':
+            allowedOrigins:
+              - "http://localhost:4000"
+            allowedMethods:
+              - GET
+              - POST
+              - PUT
+              - DELETE
+              - OPTIONS
+              - PATCH
+            allowedHeaders: "*"
+            allowCredentials: true
+            maxAge: 3600
+      
+      # 라우팅 설정
+      routes:
+        # OAuth Service API: /api/oauth/** → oauth-service로 라우팅 (로그인, 토큰 갱신, 로그아웃)
+        - id: oauth-service
+          uri: http://oauthservice:8091
+          predicates:
+            - Path=/api/oauth/**
+          filters:
+            # /api/oauth/kakao/login → /kakao/login
+            # /api/oauth/naver/login → /naver/login
+            # /api/oauth/google/login → /google/login
+            # /api/oauth/refresh → /oauth/refresh
+            # /api/oauth/logout → /oauth/logout
+            - RewritePath=/api/oauth/(?<segment>.*), /${segment}
+        
+        # User Service API: /api/users/** → user-service로 라우팅
+        - id: user-service
+          uri: http://userservice:8092
+          predicates:
+            - Path=/api/users/**
+          filters:
+            # /api/users/** → /api/users/**로 경로 유지 (User Service에서 /api/users로 매핑됨)
+            # RewritePath 불필요 (User Service가 이미 /api/users로 매핑)
+        
+        # 카카오 OAuth 콜백: /oauth/kakao/callback → /kakao/callback
+        - id: kakao-callback
+          uri: http://oauthservice:8091
+          predicates:
+            - Path=/oauth/kakao/callback
+          filters:
+            - RewritePath=/oauth/kakao/callback, /kakao/callback
+        
+        
+        # 네이버 OAuth 콜백: /oauth/naver/callback → /naver/callback
+        - id: naver-callback
+          uri: http://oauthservice:8091
+          predicates:
+            - Path=/oauth/naver/callback
+          filters:
+            - RewritePath=/oauth/naver/callback, /naver/callback
+        
+        # 구글 OAuth 콜백: /oauth/google/callback → /google/callback
+        - id: google-callback
+          uri: http://oauthservice:8091
+          predicates:
+            - Path=/oauth/google/callback
+          filters:
+            - RewritePath=/oauth/google/callback, /google/callback
+        
+        # Crawler Service API: /api/crawler/** → crawler-service로 라우팅
+        - id: crawler-service
+          uri: http://crawlerservice:9012
+          predicates:
+            - Path=/api/crawler/**
+          filters:
+            # /api/crawler/** → /**로 경로 변환
+            - RewritePath=/api/crawler/(?<segment>.*), /${segment}
+        
+        # Crawler Service 루트 경로: /crawler/** → crawler-service로 라우팅
+        - id: crawler-service-root
+          uri: http://crawlerservice:9012
+          predicates:
+            - Path=/crawler/**
+          filters:
+            - RewritePath=/crawler/(?<segment>.*), /${segment}
+        
+        # Titanic Service API: /api/titanic/** → tatanic-service로 라우팅
+        - id: tatanic-service
+          uri: http://tatanic:9001
+          predicates:
+            - Path=/api/titanic/**
+          filters:
+            # /api/titanic/** → /**로 경로 변환
+            - RewritePath=/api/titanic/(?<segment>.*), /${segment}
+            # CORS 헤더 제거 (게이트웨이에서만 처리)
+            - RemoveResponseHeader=Access-Control-Allow-Origin
+            - RemoveResponseHeader=Access-Control-Allow-Methods
+            - RemoveResponseHeader=Access-Control-Allow-Headers
+            - RemoveResponseHeader=Access-Control-Allow-Credentials
+        
+        # ML Service API: /api/ml/** → mlservice로 라우팅
+        - id: ml-service
+          uri: http://mlservice:9010
+          predicates:
+            - Path=/api/ml/**
+          filters:
+            # /api/ml/** → /**로 경로 변환
+            - RewritePath=/api/ml/(?<segment>.*), /${segment}
+            # CORS 헤더 제거 (게이트웨이에서만 처리)
+            - RemoveResponseHeader=Access-Control-Allow-Origin
+            - RemoveResponseHeader=Access-Control-Allow-Methods
+            - RemoveResponseHeader=Access-Control-Allow-Headers
+            - RemoveResponseHeader=Access-Control-Allow-Credentials
+        
+        # ML Service Swagger UI: /api/ml/docs → mlservice/docs로 라우팅
+        - id: ml-service-swagger-ui
+          uri: http://mlservice:9010
+          predicates:
+            - Path=/api/ml/docs
+          filters:
+            - RewritePath=/api/ml/docs, /docs
+        
+        # ML Service OpenAPI JSON: /api/ml/openapi.json → mlservice/openapi.json으로 라우팅
+        - id: ml-service-openapi
+          uri: http://mlservice:9010
+          predicates:
+            - Path=/api/ml/openapi.json
+          filters:
+            - RewritePath=/api/ml/openapi.json, /openapi.json
+        
+        # Transformer Service API: /api/transformer/** → transformerservice로 라우팅
+        - id: transformer-service
+          uri: http://transformerservice:9013
+          predicates:
+            - Path=/api/transformer/**
+          filters:
+            # /api/transformer/** → /**로 경로 변환
+            - RewritePath=/api/transformer/(?<segment>.*), /${segment}
+            # CORS 헤더 제거 (게이트웨이에서만 처리)
+            - RemoveResponseHeader=Access-Control-Allow-Origin
+            - RemoveResponseHeader=Access-Control-Allow-Methods
+            - RemoveResponseHeader=Access-Control-Allow-Headers
+            - RemoveResponseHeader=Access-Control-Allow-Credentials
+        
+        # Transformer Service Swagger UI: /api/transformer/docs → transformerservice/docs로 라우팅
+        - id: transformer-service-swagger-ui
+          uri: http://transformerservice:9013
+          predicates:
+            - Path=/api/transformer/docs
+          filters:
+            - RewritePath=/api/transformer/docs, /docs
+        
+        # Transformer Service OpenAPI JSON: /api/transformer/openapi.json → transformerservice/openapi.json으로 라우팅
+        - id: transformer-service-openapi
+          uri: http://transformerservice:9013
+          predicates:
+            - Path=/api/transformer/openapi.json
+          filters:
+            - RewritePath=/api/transformer/openapi.json, /openapi.json
+  
+  # Redis (Upstash) 설정 - Gateway에서 JWT 블랙리스트 및 Rate Limit에 사용
+  data:
+    redis:
+      host: ${UPSTASH_REDIS_HOST}
+      port: ${UPSTASH_REDIS_PORT}
+      password: ${UPSTASH_REDIS_PASSWORD}
+      ssl:
+        enabled: true
+      timeout: 2000ms
+      lettuce:
+        pool:
+          max-active: 8
+          max-idle: 8
+          min-idle: 0
+  
+  # JWT 설정
+  jwt:
+    secret: ${JWT_SECRET}
+
+# 서버 포트
+server:
+  port: 8080
+
+# Swagger UI 설정: /docs 경로로 접근
+# OpenApiConfig.java의 설정을 application.yaml로 이동
+# - Gateway API와 ML Service (FastAPI)의 OpenAPI를 통합하여 표시
+# - urls 설정을 통해 여러 서비스의 API 문서를 드롭다운으로 선택 가능
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /docs
+    enabled: true
+    operations-sorter: method
+    tags-sorter: alpha
+    use-root-path: false
+    persist-authorization: true
+    show-actuator: false
+    default-flat-param-object: true
+    writer-with-order-by-keys: true
+    # 여러 서비스의 OpenAPI 통합 (OpenApiConfig.java에서 이동)
+    # Swagger UI 상단의 드롭다운에서 서비스를 선택하여 API 문서 확인 가능
+    urls:
+      - name: Gateway APIs
+        url: /v3/api-docs
+        display-name: Gateway Service
+      - name: ML Service
+        url: /api/ml/openapi.json
+        display-name: ML Service (FastAPI)
+      - name: Transformer Service
+        url: /api/transformer/openapi.json
+        display-name: Transformer Service (FastAPI)
+
+# 로깅 레벨 설정
+logging:
+  level:
+    org.springframework.cloud.client.discovery: INFO
+    org.springframework.cloud.loadbalancer: INFO
+    org.springframework.cloud.gateway: INFO
+    org.springframework.cloud.gateway.handler.FilteringWebHandler: WARN

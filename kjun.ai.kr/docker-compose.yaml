@@ -1,0 +1,118 @@
+services:
+  gatewayserver:
+    build:
+      context: ./api.kjun.ai.kr
+      dockerfile: ./gateway/Dockerfile
+    container_name: gatewayserver
+    ports:
+      - "8080:8080"
+    environment:
+      - JWT_SECRET=${JWT_SECRET}
+      - UPSTASH_REDIS_HOST=${UPSTASH_REDIS_HOST}
+      - UPSTASH_REDIS_PORT=${UPSTASH_REDIS_PORT}
+      - UPSTASH_REDIS_PASSWORD=${UPSTASH_REDIS_PASSWORD}
+    networks:
+      spring-network:
+
+
+  oauthservice:
+    build:
+      context: ./core.kjun.ai.kr/oauthservice
+      dockerfile: ./Dockerfile
+    container_name: oauthserviceper
+    ports:
+      - "8091:8091"
+    environment:
+      - KAKAO_REST_API_KEY=${KAKAO_REST_API_KEY}
+      - KAKAO_REDIRECT_URI=${KAKAO_REDIRECT_URI}
+      - NAVER_CLIENT_ID=${NAVER_CLIENT_ID}
+      - NAVER_CLIENT_SECRET=${NAVER_CLIENT_SECRET}
+      - NAVER_REDIRECT_URI=${NAVER_REDIRECT_URI}
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
+      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
+      - GOOGLE_REDIRECT_URI=${GOOGLE_REDIRECT_URI}
+      - FRONT_LOGIN_CALLBACK_URL=${FRONT_LOGIN_CALLBACK_URL}
+      - JWT_SECRET=${JWT_SECRET}
+      - JWT_EXPIRATION=${JWT_EXPIRATION:-86400000}
+      - UPSTASH_REDIS_HOST=${UPSTASH_REDIS_HOST}
+      - UPSTASH_REDIS_PORT=${UPSTASH_REDIS_PORT}
+      - UPSTASH_REDIS_PASSWORD=${UPSTASH_REDIS_PASSWORD}
+      - USER_SERVICE_URL=${USER_SERVICE_URL:-http://userservice:8092}
+    networks:
+      spring-network:
+
+
+  userservice:
+    build:
+      context: ./core.kjun.ai.kr/userservice
+      dockerfile: ./Dockerfile
+    container_name: userserviceper
+    ports:
+      - "8092:8092"
+    environment:
+      - NEON_DB_HOST=${NEON_DB_HOST}
+      - NEON_DB_NAME=${NEON_DB_NAME}
+      - NEON_DB_USER=${NEON_DB_USER}
+      - NEON_DB_PASSWORD=${NEON_DB_PASSWORD}
+    networks:
+      spring-network:
+
+
+  crawlerservice:
+    build:
+      context: ./ai.kjun.ai.kr/crawlerservice
+      dockerfile: ./Dockerfile
+    container_name: crawlerserviceper
+    ports:
+      - "9012:9012"
+    networks:
+      spring-network:
+
+
+  authservice:
+    build:
+      context: ./ai.kjun.ai.kr/authservice
+      dockerfile: ./Dockerfile
+    container_name: authserviceper
+    ports:
+      - "9011:9011"
+    networks:
+      spring-network:
+
+
+  mlservice:
+    build:
+      context: ./ai.kjun.ai.kr/mlservice
+      dockerfile: ./Dockerfile
+    container_name: mlserviceper
+    ports:
+      - "9010:9010"
+    environment:
+      - KAKAO_REST_API_KEY=${KAKAO_REST_API_KEY}
+      - KAKAO_ADMIN_KEY=${KAKAO_ADMIN_KEY}
+      - KAKAO_JAVASCRIPT_KEY=${KAKAO_JAVASCRIPT_KEY}
+      - KAKAO_NATIVE_KEY=${KAKAO_NATIVE_KEY}
+      - KAKAO_REDIRECT_URI=${KAKAO_REDIRECT_URI}
+    volumes:
+      - ./ai.kjun.ai.kr/mlservice/app/kaggle:/app/kaggle
+      - ./ai.kjun.ai.kr/mlservice/app/seoullab_crime/save:/app/seoullab_crime/save
+      - ./ai.kjun.ai.kr/mlservice/app/us_unemployment/save:/app/us_unemployment/save
+      - ./ai.kjun.ai.kr/mlservice/app/nlp/save:/app/nlp/save
+    networks:
+      spring-network:
+
+
+  transformerservice:
+    build:
+      context: ./ai.kjun.ai.kr/transfomerservice
+      dockerfile: ./Dockerfile
+    container_name: transformerserviceper
+    ports:
+      - "9013:9013"
+    networks:
+      spring-network:
+
+
+networks:
+  spring-network:
+    driver: bridge
