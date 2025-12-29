@@ -2,12 +2,12 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { type AuthProvider } from "@/lib/auth";
+import { type OAuthProvider } from "@/lib/oauth";
 import { createSocialLoginHandlers } from "@/service/mainservice";
 
 export function useSocialLogin() {
   const router = useRouter();
-  const [loading, setLoading] = useState<Record<AuthProvider, boolean>>({
+  const [loading, setLoading] = useState<Record<OAuthProvider, boolean>>({
     kakao: false,
     naver: false,
     google: false,

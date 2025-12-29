@@ -2,14 +2,14 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { getUserInfo, getLoginProvider, clearAuthData, type UserInfo } from "@/lib/auth";
-import { type AuthProvider } from "@/lib/auth";
-import { PROVIDER_NAMES } from "@/constants/auth";
+import { getUserInfo, getLoginProvider, clearOAuthData, type UserInfo } from "@/lib/oauth";
+import { type OAuthProvider } from "@/lib/oauth";
+import { PROVIDER_NAMES } from "@/constants/oauth";
 
 export default function Dashboard() {
     const router = useRouter();
     const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
-    const [loginProvider, setLoginProvider] = useState<AuthProvider | null>(null);
+    const [loginProvider, setLoginProvider] = useState<OAuthProvider | null>(null);
 
     useEffect(() => {
         const storedUserInfo = getUserInfo();
@@ -20,11 +20,11 @@ export default function Dashboard() {
     }, []);
 
     const handleLogout = () => {
-        clearAuthData();
+        clearOAuthData();
         router.push("/");
     };
 
-    const getProviderName = (provider: AuthProvider | null): string => {
+    const getProviderName = (provider: OAuthProvider | null): string => {
         return provider ? PROVIDER_NAMES[provider] : "소셜";
     };
 

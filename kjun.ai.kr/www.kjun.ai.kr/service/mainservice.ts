@@ -1,10 +1,10 @@
 import React from "react";
-import { type AuthProvider, requestSocialLogin, redirectToLoginUrl, handleTokenResponse } from "@/lib/auth";
-import { ERROR_MESSAGES } from "@/constants/auth";
+import { type OAuthProvider, requestOAuthLogin, redirectToLoginUrl, handleTokenResponse } from "@/lib/oauth";
+import { ERROR_MESSAGES } from "@/constants/oauth";
 
 // 핸들러 반환 타입
 export interface SocialLoginHandlers {
-    handleSocialLogin: (provider: AuthProvider) => Promise<void>;
+    handleSocialLogin: (provider: OAuthProvider) => Promise<void>;
     handleKakaoLogin: () => void;
     handleNaverLogin: () => void;
     handleGoogleLogin: () => void;
@@ -13,18 +13,18 @@ export interface SocialLoginHandlers {
 // 클로저를 활용한 핸들러 생성 함수 (순수 함수)
 export function createSocialLoginHandlers(
     router: { push: (path: string) => void },
-    setLoading: React.Dispatch<React.SetStateAction<Record<AuthProvider, boolean>>>,
+    setLoading: React.Dispatch<React.SetStateAction<Record<OAuthProvider, boolean>>>,
     setError: React.Dispatch<React.SetStateAction<string | null>>
 ): SocialLoginHandlers {
     // IIFE를 사용하여 클로저 환경 생성
     return (() => {
         // 일반 함수: 메인 소셜 로그인 핸들러 (클로저로 외부 스코프 접근)
-        async function handleSocialLogin(provider: AuthProvider): Promise<void> {
+        async function handleSocialLogin(provider: OAuthProvider): Promise<void> {
             setLoading((prev) => ({ ...prev, [provider]: true }));
             setError(null);
 
             try {
-                const data = await requestSocialLogin(provider);
+                const data = await requestOAuthLogin(provider);
 
                 // 옵션 1: 로그인 URL을 반환하는 경우
                 if (data.loginUrl) {

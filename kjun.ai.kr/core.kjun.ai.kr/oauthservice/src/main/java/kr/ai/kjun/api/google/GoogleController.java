@@ -189,7 +189,7 @@ public class GoogleController {
         Long userId = ((Number) user.get("id")).longValue();
 
         String redirectUrl = String.format(
-                "%s/auth/google/success?token=%s&refreshToken=%s&id=%d&email=%s&nickname=%s",
+                "%s/oauth/google/success?token=%s&refreshToken=%s&id=%d&email=%s&nickname=%s",
                 frontendLoginCallbackUrl, encodedToken, encodedRefreshToken, userId, encodedEmail, encodedNickname);
 
         return ResponseEntity.status(HttpStatus.FOUND)

@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { API_GATEWAY_URL } from "@/constants/auth";
+import { API_GATEWAY_URL } from "@/constants/oauth";
 
 interface Passenger {
     rank: number;

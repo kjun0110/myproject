@@ -1,10 +1,10 @@
 "use client";
 
-import { type AuthProvider } from "@/lib/auth";
+import { type OAuthProvider } from "@/lib/oauth";
 import { type ReactNode } from "react";
 
 interface SocialLoginButtonProps {
-  provider: AuthProvider;
+  provider: OAuthProvider;
   onClick: () => void;
   disabled?: boolean;
   loading?: boolean;

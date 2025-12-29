@@ -2,10 +2,10 @@
 
 import { useRouter, useSearchParams, useParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import { type AuthProvider } from "@/lib/auth";
-import { saveAuthData, type UserInfo } from "@/lib/auth";
-import { ERROR_MESSAGES } from "@/constants/auth";
-import { AuthStatusPage } from "@/components/AuthStatusPage";
+import { type OAuthProvider } from "@/lib/oauth";
+import { saveOAuthData, type UserInfo } from "@/lib/oauth";
+import { ERROR_MESSAGES } from "@/constants/oauth";
+import { OAuthStatusPage } from "@/components/OAuthStatusPage";
 
 /**
  * 동적 라우팅 경로: app/auth/[provider]/success/page.tsx
@@ -29,10 +29,10 @@ export default function AuthSuccess() {
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
-        // 동적 라우팅에서 추출한 provider 값을 AuthProvider 타입으로 변환
+        // 동적 라우팅에서 추출한 provider 값을 OAuthProvider 타입으로 변환
         // params.provider는 Next.js가 URL에서 자동으로 추출한 값
         // 예: /auth/google/success → params.provider = "google"
-        const provider = params.provider as AuthProvider;
+        const provider = params.provider as OAuthProvider;
         const token = searchParams.get("token");
         const id = searchParams.get("id");
         const email = searchParams.get("email");
@@ -46,8 +46,8 @@ export default function AuthSuccess() {
                 if (email) userInfo.email = email;
                 if (nickname) userInfo.nickname = nickname;
 
-                // 인증 정보 저장
-                saveAuthData(token, provider, userInfo);
+                // OAuth 정보 저장
+                saveOAuthData(token, provider, userInfo);
 
                 console.log(`${provider} 로그인 성공, 토큰 저장 완료`, {
                     token: token.substring(0, 20) + "...",
@@ -70,6 +70,6 @@ export default function AuthSuccess() {
         }
     }, [searchParams, router, params]);
 
-    return <AuthStatusPage isLoading={isLoading} error={error} />;
+    return <OAuthStatusPage isLoading={isLoading} error={error} />;
 }
 

@@ -168,27 +168,21 @@ OAuth 2.0은 **인가(Authorization) 프레임워크**로, 사용자가 제3자 
 app/
 ├── page.tsx                    # 로그인 페이지 (메인)
 ├── lib/
-│   └── auth.ts                 # 인증 유틸리티 함수
-└── auth/
-    ├── kakao/
-    │   └── success/
-    │       └── page.tsx         # 카카오 로그인 성공 페이지
-    ├── naver/
-    │   └── success/
-    │       └── page.tsx         # 네이버 로그인 성공 페이지
-    └── google/
+│   └── oauth.ts                 # OAuth 유틸리티 함수
+└── oauth/
+    └── [provider]/
         └── success/
-            └── page.tsx         # 구글 로그인 성공 페이지
+            └── page.tsx         # OAuth 로그인 성공 페이지
 ```
 
-### 1. 인증 유틸리티 (`app/lib/auth.ts`)
+### 1. OAuth 유틸리티 (`app/lib/oauth.ts`)
 
 #### 타입 정의
 
 ```typescript
-export type AuthProvider = "kakao" | "naver" | "google";
+export type OAuthProvider = "kakao" | "naver" | "google";
 
-export interface AuthResponse {
+export interface OAuthResponse {
   success?: boolean;
   token?: string;
   loginUrl?: string;
@@ -200,7 +194,7 @@ export interface AuthResponse {
   message?: string;
 }
 
-export interface AuthError {
+export interface OAuthError {
   message: string;
   error?: string;
 }
@@ -208,16 +202,16 @@ export interface AuthError {
 
 #### 핵심 함수들
 
-##### `requestSocialLogin`: OAuth 로그인 요청
+##### `requestOAuthLogin`: OAuth 로그인 요청
 
 ```typescript
-export async function requestSocialLogin(
-  provider: AuthProvider
-): Promise<AuthResponse> {
+export async function requestOAuthLogin(
+  provider: OAuthProvider
+): Promise<OAuthResponse> {
   const endpoint =
     provider === "kakao"
-      ? "/api/auth/kakao/login"
-      : `/api/auth/${provider}`;
+      ? "/api/oauth/kakao/login"
+      : `/api/oauth/${provider}/login`;
 
   const response = await fetch(`${API_GATEWAY_URL}${endpoint}`, {
     method: "POST",
@@ -232,7 +226,7 @@ export async function requestSocialLogin(
     throw new Error(errorMessage);
   }
 
-  const data: AuthResponse = await response.json();
+  const data: OAuthResponse = await response.json();
   return data;
 }
 ```
@@ -257,7 +251,7 @@ export async function parseErrorResponse(
   try {
     const errorText = await response.text();
     try {
-      const errorData: AuthError = JSON.parse(errorText);
+      const errorData: OAuthError = JSON.parse(errorText);
       errorMessage = errorData.message || errorData.error || errorText;
     } catch {
       errorMessage = errorText || errorMessage;
@@ -275,12 +269,12 @@ export async function parseErrorResponse(
 - JSON 형식의 에러 응답 파싱
 - 404 에러는 특별 처리
 
-##### `saveAuthData`: 인증 정보 저장
+##### `saveOAuthData`: OAuth 정보 저장
 
 ```typescript
-export function saveAuthData(
+export function saveOAuthData(
   token: string,
-  provider: AuthProvider,
+  provider: OAuthProvider,
   user?: { id?: string; email?: string; nickname?: string }
 ): void {
   localStorage.setItem("access_token", token);
@@ -302,7 +296,7 @@ export function saveAuthData(
 ```typescript
 export function redirectToLoginUrl(
   loginUrl: string,
-  provider: AuthProvider
+  provider: OAuthProvider
 ): void {
   console.log(`${provider} 로그인 URL로 리다이렉트:`, loginUrl);
   window.location.href = loginUrl;
@@ -317,12 +311,12 @@ export function redirectToLoginUrl(
 
 ```typescript
 export function handleTokenResponse(
-  data: AuthResponse,
-  provider: AuthProvider,
+  data: OAuthResponse,
+  provider: OAuthProvider,
   router: { push: (path: string) => void }
 ): void {
   if (data.success === true && data.token) {
-    saveAuthData(data.token, provider, data.user);
+    saveOAuthData(data.token, provider, data.user);
     console.log(`${provider} 로그인 성공:`, data);
     router.push("/dashboard");
   } else {
@@ -341,7 +335,7 @@ export function handleTokenResponse(
 #### 상태 관리
 
 ```typescript
-const [loading, setLoading] = useState<Record<AuthProvider, boolean>>({
+const [loading, setLoading] = useState<Record<OAuthProvider, boolean>>({
   kakao: false,
   naver: false,
   google: false,
@@ -358,12 +352,12 @@ const isAnyLoading = Object.values(loading).some((isLoading) => isLoading);
 #### 통합 로그인 핸들러
 
 ```typescript
-const handleSocialLogin = async (provider: AuthProvider) => {
+const handleSocialLogin = async (provider: OAuthProvider) => {
   setLoading((prev) => ({ ...prev, [provider]: true }));
   setError(null);
 
   try {
-    const data = await requestSocialLogin(provider);
+    const data = await requestOAuthLogin(provider);
 
     // 옵션 1: 로그인 URL을 반환하는 경우
     if (data.loginUrl) {
@@ -405,7 +399,7 @@ const handleGoogleLogin = () => handleSocialLogin("google");
 - 각 버튼에 연결하기 위한 간단한 래퍼 함수
 - 코드 중복 최소화
 
-### 3. 성공 페이지 (`app/auth/{provider}/success/page.tsx`)
+### 3. 성공 페이지 (`app/oauth/[provider]/success/page.tsx`)
 
 #### 구조
 
@@ -949,7 +943,7 @@ private void validateRedirectUri(String redirectUri) {
 
 ```typescript
 try {
-  const data = await requestSocialLogin(provider);
+  const data = await requestOAuthLogin(provider);
 } catch (err) {
   if (err instanceof TypeError && err.message.includes("fetch")) {
     setError("네트워크 연결을 확인해주세요.");
@@ -1048,16 +1042,16 @@ try {
 #### 프론트엔드 유틸리티 함수 테스트
 
 ```typescript
-// __tests__/lib/auth.test.ts
-import { saveAuthData, parseErrorResponse } from '@/app/lib/auth';
+// __tests__/lib/oauth.test.ts
+import { saveOAuthData, parseErrorResponse } from '@/lib/oauth';
 
-describe('saveAuthData', () => {
+describe('saveOAuthData', () => {
   beforeEach(() => {
     localStorage.clear();
   });
 
   it('토큰과 provider를 저장해야 함', () => {
-    saveAuthData('test-token', 'kakao');
+    saveOAuthData('test-token', 'kakao');
     
     expect(localStorage.getItem('access_token')).toBe('test-token');
     expect(localStorage.getItem('login_provider')).toBe('kakao');
@@ -1065,7 +1059,7 @@ describe('saveAuthData', () => {
 
   it('사용자 정보도 함께 저장해야 함', () => {
     const user = { id: '123', email: 'test@example.com' };
-    saveAuthData('test-token', 'kakao', user);
+    saveOAuthData('test-token', 'kakao', user);
     
     const savedUser = JSON.parse(localStorage.getItem('user_info') || '{}');
     expect(savedUser.id).toBe('123');
@@ -1364,8 +1358,8 @@ function isAuthenticated(): boolean {
 ```
 프론트엔드:
 - app/page.tsx                    # 로그인 페이지
-- app/lib/auth.ts                 # 인증 유틸리티
-- app/auth/{provider}/success/    # 성공 페이지 (kakao, naver, google)
+- lib/oauth.ts                     # OAuth 유틸리티
+- app/oauth/[provider]/success/   # 성공 페이지 (kakao, naver, google)
 
 백엔드:
 - /api/auth/{provider}            # 로그인 URL 반환 (kakao는 /api/auth/kakao/login)
