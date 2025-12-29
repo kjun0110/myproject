@@ -49,6 +49,10 @@ export default function Home() {
     router.push("/fileupload");
   };
 
+  const handleDiffuserClick = () => {
+    router.push("/diffuser");
+  };
+
   return (
     <div className="flex min-h-screen bg-zinc-50 font-sans dark:bg-black">
       {/* 헤더 */}
@@ -69,14 +73,22 @@ export default function Home() {
         style={{ paddingTop: "64px" }}
       >
         <div className="min-h-[calc(100vh-64px)] p-8">
-          <div className="flex justify-end">
+          <div className="flex flex-col items-end gap-3">
             {isLoggedIn && (
-              <button
-                onClick={handleFileUploadClick}
-                className="px-6 py-3 rounded-lg bg-green-600 hover:bg-green-700 text-white font-medium transition-colors"
-              >
-                파일업로드
-              </button>
+              <>
+                <button
+                  onClick={handleFileUploadClick}
+                  className="px-6 py-3 rounded-lg bg-green-600 hover:bg-green-700 text-white font-medium transition-colors"
+                >
+                  파일업로드
+                </button>
+                <button
+                  onClick={handleDiffuserClick}
+                  className="px-6 py-3 rounded-lg bg-purple-600 hover:bg-purple-700 text-white font-medium transition-colors"
+                >
+                  Diffuser
+                </button>
+              </>
             )}
           </div>
         </div>
