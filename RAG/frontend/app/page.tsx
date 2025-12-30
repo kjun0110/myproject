@@ -14,7 +14,7 @@ interface Message {
 type ModelType = "openai" | "local";
 
 export default function Home() {
-  const [messages, setMessages] = useState<Message[]>([
+  const [messages, setMessages] = useState<Message[]>(() => [
     {
       id: "1",
       role: "assistant",
@@ -68,7 +68,33 @@ export default function Home() {
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        const errorMsg = errorData.error || errorData.message || "응답을 받는 중 오류가 발생했습니다.";
+        const errorMsg = errorData.error || errorData.detail || errorData.message || "응답을 받는 중 오류가 발생했습니다.";
+
+        // 백엔드 환경 불일치 에러 (400)
+        if (response.status === 400) {
+          // 백엔드가 로컬일 때 OpenAI 선택
+          if (errorMsg.includes("로컬환경") && modelType === "openai") {
+            const errorMessage: Message = {
+              id: (Date.now() + 1).toString(),
+              role: "assistant",
+              content: "ℹ️ 현재 로컬 환경입니다.",
+              timestamp: new Date(),
+            };
+            setMessages((prev) => [...prev, errorMessage]);
+            return;
+          }
+          // 백엔드가 클라우드일 때 로컬 모델 선택
+          if (errorMsg.includes("로컬 환경이 아닙니다") && modelType === "local") {
+            const errorMessage: Message = {
+              id: (Date.now() + 1).toString(),
+              role: "assistant",
+              content: "ℹ️ 현재 EC2 환경입니다.",
+              timestamp: new Date(),
+            };
+            setMessages((prev) => [...prev, errorMessage]);
+            return;
+          }
+        }
 
         // OpenAI 호출량 초과 에러
         if (response.status === 429) {

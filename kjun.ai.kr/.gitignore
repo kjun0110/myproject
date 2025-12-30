@@ -54,3 +54,9 @@ build/
 ### YOLO Model Files ###
 **/data/yolo/model/
 *.pt
+
+### Private Keys ###
+*.pem
+*.key
+*.p12
+*.pfx

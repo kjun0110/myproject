@@ -114,8 +114,8 @@ export async function requestOAuthLogin(
 ): Promise<OAuthResponse> {
     const endpoint =
         provider === "kakao"
-            ? "/api/oauth/kakao/login"
-            : `/api/oauth/${provider}/login`;
+            ? "/oauth/kakao/login"
+            : `/oauth/${provider}/login`;
 
     const response = await fetch(`${API_GATEWAY_URL}${endpoint}`, {
         method: "POST",

@@ -2,8 +2,8 @@ services:
   gatewayserver:
     build:
       context: ./api.kjun.ai.kr
-      dockerfile: ./gateway/Dockerfile
-    container_name: gatewayserver
+      dockerfile: ./Dockerfile
+    container_name: gatewayserverper
     ports:
       - "8080:8080"
     environment:
@@ -11,18 +11,7 @@ services:
       - UPSTASH_REDIS_HOST=${UPSTASH_REDIS_HOST}
       - UPSTASH_REDIS_PORT=${UPSTASH_REDIS_PORT}
       - UPSTASH_REDIS_PASSWORD=${UPSTASH_REDIS_PASSWORD}
-    networks:
-      spring-network:
-
-
-  oauthservice:
-    build:
-      context: ./core.kjun.ai.kr/oauthservice
-      dockerfile: ./Dockerfile
-    container_name: oauthserviceper
-    ports:
-      - "8091:8091"
-    environment:
+      # OAuth Service 환경 변수 (통합됨)
       - KAKAO_REST_API_KEY=${KAKAO_REST_API_KEY}
       - KAKAO_REDIRECT_URI=${KAKAO_REDIRECT_URI}
       - NAVER_CLIENT_ID=${NAVER_CLIENT_ID}
@@ -32,30 +21,16 @@ services:
       - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
       - GOOGLE_REDIRECT_URI=${GOOGLE_REDIRECT_URI}
       - FRONT_LOGIN_CALLBACK_URL=${FRONT_LOGIN_CALLBACK_URL}
-      - JWT_SECRET=${JWT_SECRET}
       - JWT_EXPIRATION=${JWT_EXPIRATION:-86400000}
-      - UPSTASH_REDIS_HOST=${UPSTASH_REDIS_HOST}
-      - UPSTASH_REDIS_PORT=${UPSTASH_REDIS_PORT}
-      - UPSTASH_REDIS_PASSWORD=${UPSTASH_REDIS_PASSWORD}
-      - USER_SERVICE_URL=${USER_SERVICE_URL:-http://userservice:8092}
-    networks:
-      spring-network:
-
-
-  userservice:
-    build:
-      context: ./core.kjun.ai.kr/userservice
-      dockerfile: ./Dockerfile
-    container_name: userserviceper
-    ports:
-      - "8092:8092"
-    environment:
+      # User Service 환경 변수 (통합됨)
       - NEON_DB_HOST=${NEON_DB_HOST}
       - NEON_DB_NAME=${NEON_DB_NAME}
       - NEON_DB_USER=${NEON_DB_USER}
       - NEON_DB_PASSWORD=${NEON_DB_PASSWORD}
     networks:
       spring-network:
+
+  # oauthservice와 userservice는 api.kjun.ai.kr에 통합됨
 
 
   crawlerservice:
