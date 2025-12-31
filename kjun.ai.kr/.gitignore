@@ -36,6 +36,49 @@ out/
 ### VS Code ###
 .vscode/
 .env
+.env*.local
+*.env
+
+### Node.js / npm ###
+/node_modules
+**/node_modules/
+/.pnp
+.pnp.js
+
+### Next.js ###
+/.next/
+**/.next/
+/out/
+
+### Testing ###
+/coverage
+
+### Logs ###
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+### Vercel ###
+.vercel
+
+### TypeScript ###
+*.tsbuildinfo
+next-env.d.ts
+
+### PWA Files ###
+**/public/sw.js
+**/public/workbox-*.js
+**/public/worker-*.js
+**/public/sw.js.map
+**/public/workbox-*.js.map
+**/public/worker-*.js.map
+
+### macOS ###
+.DS_Store
+
+### Project Specific ###
+**/app/model/midm/
+libs/langchain/
 
 ### HuggingFace Cache ###
 **/.hf_cache/

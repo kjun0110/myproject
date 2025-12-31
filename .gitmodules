@@ -1,0 +1,9 @@
+[submodule "kjun.ai.kr/api.kjun.ai.kr"]
+	path = kjun.ai.kr/api.kjun.ai.kr
+	url = https://github.com/kjun0110/myprojectapi
+[submodule "kjun.ai.kr/chat.kjun.ai.kr"]
+	path = kjun.ai.kr/chat.kjun.ai.kr
+	url = https://github.com/kjun0110/myprojectchat
+[submodule "kjun.ai.kr/vision.kjun.ai.kr"]
+	path = kjun.ai.kr/vision.kjun.ai.kr
+	url = https://github.com/kjun0110/myprojectvision
