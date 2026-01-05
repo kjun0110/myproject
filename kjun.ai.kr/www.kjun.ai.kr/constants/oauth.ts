@@ -1,7 +1,8 @@
 import { type OAuthProvider } from "@/lib/oauth";
 
 // API 설정
-export const API_GATEWAY_URL = "http://localhost:8080";
+// 환경변수에서 백엔드 URL을 읽어오고, 없으면 개발 환경용 localhost 사용
+export const API_GATEWAY_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8080";
 
 // Provider 이름 매핑
 export const PROVIDER_NAMES: Record<OAuthProvider, string> = {
