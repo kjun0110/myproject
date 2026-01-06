@@ -2,8 +2,8 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { getUserInfo, getLoginProvider, clearOAuthData, type UserInfo } from "@/lib/oauth";
-import { type OAuthProvider } from "@/lib/oauth";
+import { getUserInfo, getLoginProvider, authLogout } from "@/store/authStore";
+import type { OAuthProvider, UserInfo } from "@/types";
 import { PROVIDER_NAMES } from "@/constants/oauth";
 
 export default function Dashboard() {
@@ -19,8 +19,9 @@ export default function Dashboard() {
         setLoginProvider(provider);
     }, []);
 
-    const handleLogout = () => {
-        clearOAuthData();
+    const handleLogout = async () => {
+        const { handleLogout: logout } = await import("@/services/dashboard/dashboardService");
+        await logout();
         router.push("/");
     };
 
@@ -33,7 +34,7 @@ export default function Dashboard() {
             <main className="flex w-full max-w-md flex-col items-center gap-8 py-16 px-6">
                 <div className="flex w-full flex-col items-center gap-6 text-center">
                     <h1 className="text-4xl font-bold text-black dark:text-zinc-50">
-                        로그인이 성공했습니다
+                        내정보
                     </h1>
                     {loginProvider && (
                         <p className="text-xl font-semibold text-zinc-600 dark:text-zinc-400">

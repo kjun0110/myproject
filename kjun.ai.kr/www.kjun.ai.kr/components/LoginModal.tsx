@@ -1,6 +1,6 @@
 "use client";
 
-import { useSocialLogin } from "@/hooks/useSocialLogin";
+import { useSocialLogin } from "@/hooks/page/useSocialLogin";
 import { SocialLoginButton } from "@/components/SocialLoginButton";
 
 interface LoginModalProps {

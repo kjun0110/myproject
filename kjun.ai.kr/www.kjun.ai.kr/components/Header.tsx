@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { getUserInfo, getAccessToken } from "@/lib/oauth";
+import { useState, useRef, useEffect } from "react";
+import { useIsLoggedIn } from "@/hooks/dashboard/useAuth";
+import { handleLogout } from "@/services/dashboard/dashboardService";
 
 interface HeaderProps {
   onLoginClick: () => void;
@@ -13,38 +14,48 @@ interface HeaderProps {
 
 export function Header({ onLoginClick, onAIClick, isSidebarOpen, onSidebarToggle }: HeaderProps) {
   const router = useRouter();
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  
+  // Hook을 통해 로그인 상태 가져오기
+  const isLoggedIn = useIsLoggedIn();
 
-  const checkLoginStatus = () => {
-    const token = getAccessToken();
-    const userInfo = getUserInfo();
-    setIsLoggedIn(!!(token && userInfo));
-  };
-
+  // 외부 클릭 시 드롭다운 닫기
   useEffect(() => {
-    // 로그인 상태 확인
-    checkLoginStatus();
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsDropdownOpen(false);
+      }
+    };
 
-    // 로그인 상태를 주기적으로 확인 (로컬스토리지 변경 감지)
-    const interval = setInterval(checkLoginStatus, 500);
-
-    // 페이지 포커스 시에도 확인
-    const handleFocus = () => checkLoginStatus();
-    window.addEventListener('focus', handleFocus);
+    if (isDropdownOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
 
     return () => {
-      clearInterval(interval);
-      window.removeEventListener('focus', handleFocus);
+      document.removeEventListener("mousedown", handleClickOutside);
     };
-  }, []);
+  }, [isDropdownOpen]);
 
   const handleAccountClick = () => {
     if (isLoggedIn) {
-      router.push("/dashboard");
+      setIsDropdownOpen(!isDropdownOpen);
     } else {
       onLoginClick();
     }
   };
+
+  const handleMyInfoClick = () => {
+    setIsDropdownOpen(false);
+    router.push("/dashboard");
+  };
+
+  const handleLogoutClick = async () => {
+    setIsDropdownOpen(false);
+    await handleLogout();
+    router.push("/");
+  };
+
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-white dark:bg-zinc-900 border-b border-zinc-200 dark:border-zinc-800">
       <div className="flex items-center justify-between h-16 px-4 md:px-6">
@@ -81,20 +92,59 @@ export function Header({ onLoginClick, onAIClick, isSidebarOpen, onSidebarToggle
           </div>
         </div>
 
-        {/* 우측: AI 버튼 + 로그인 버튼 */}
-        <div className="flex items-center gap-3">
+        {/* 우측: AI 버튼 + 로그인/내계정 버튼 */}
+        <div className="flex items-center gap-3 relative" ref={dropdownRef}>
           <button
             onClick={onAIClick}
             className="px-4 py-2 rounded-lg bg-gradient-to-r from-blue-500 to-purple-600 text-white font-medium hover:from-blue-600 hover:to-purple-700 transition-all shadow-sm"
           >
             AI
           </button>
-          <button
-            onClick={handleAccountClick}
-            className="px-4 py-2 rounded-lg bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 font-medium hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors"
-          >
-            {isLoggedIn ? "내계정" : "로그인"}
-          </button>
+          <div className="relative">
+            <button
+              onClick={handleAccountClick}
+              className="px-4 py-2 rounded-lg bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 font-medium hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors flex items-center gap-2"
+            >
+              {isLoggedIn ? "내계정" : "로그인"}
+              {isLoggedIn && (
+                <svg
+                  className={`w-4 h-4 transition-transform ${isDropdownOpen ? "rotate-180" : ""}`}
+                  fill="none"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path d="M19 9l-7 7-7-7" />
+                </svg>
+              )}
+            </button>
+
+            {/* 드롭다운 메뉴 */}
+            {isLoggedIn && isDropdownOpen && (
+              <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-zinc-800 rounded-lg shadow-lg border border-zinc-200 dark:border-zinc-700 overflow-hidden z-50">
+                <button
+                  onClick={() => setIsDropdownOpen(false)}
+                  className="w-full px-4 py-3 text-left text-sm text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-700 transition-colors border-b border-zinc-200 dark:border-zinc-700"
+                >
+                  내계정
+                </button>
+                <button
+                  onClick={handleMyInfoClick}
+                  className="w-full px-4 py-3 text-left text-sm text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-700 transition-colors border-b border-zinc-200 dark:border-zinc-700"
+                >
+                  내정보
+                </button>
+                <button
+                  onClick={handleLogoutClick}
+                  className="w-full px-4 py-3 text-left text-sm text-red-600 dark:text-red-400 hover:bg-zinc-100 dark:hover:bg-zinc-700 transition-colors"
+                >
+                  로그아웃
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </header>
