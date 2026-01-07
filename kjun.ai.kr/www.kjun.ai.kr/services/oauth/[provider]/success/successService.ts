@@ -23,8 +23,6 @@ export async function setRefreshTokenCookie(refreshToken: string): Promise<void>
       const error = await response.json();
       throw new Error(error.error || "Failed to set refresh token cookie");
     }
-
-    console.log("✅ Refresh token saved to HttpOnly cookie");
   } catch (error) {
     console.error("❌ Failed to set refresh token cookie:", error);
     throw error;
@@ -50,6 +48,4 @@ export async function saveOAuthData(
   if (refreshToken) {
     await setRefreshTokenCookie(refreshToken);
   }
-
-  console.log(`✅ ${provider} 로그인 정보 저장 완료 (Access Token은 메모리에만, Refresh Token은 HttpOnly 쿠키에)`);
 }
