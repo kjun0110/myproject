@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState, useCallback } from "react";
 import { handleSocialLogin } from "@/services/page/pageService";
-import type { OAuthProvider } from "@/types";
+import type { OAuthProvider } from "@/store/auth.index";
 
 /**
  * 소셜 로그인 Hook (메인 페이지용)

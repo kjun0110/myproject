@@ -3,7 +3,7 @@
  * 로그아웃 관련 핸들러
  */
 
-import { authLogout, getAccessToken, getUserInfo } from "@/store/authStore";
+import { authLogout, getAccessToken, getUserInfo } from "@/store/auth.store";
 import { logoutApi } from "@/services/oauth/oauthApi";
 
 /**

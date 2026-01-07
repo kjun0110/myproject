@@ -3,10 +3,10 @@
  * 소셜 로그인 관련 핸들러
  */
 
-import { authLogin } from "@/store/authStore";
+import { authLogin } from "@/store/auth.store";
 import { requestOAuthLogin } from "@/services/oauth/oauthApi";
 import { ERROR_MESSAGES } from "@/constants/oauth";
-import type { OAuthProvider, OAuthResponse } from "@/types";
+import type { OAuthProvider, OAuthResponse } from "@/store/auth.index";
 
 /**
  * 로그인 URL로 리다이렉트
@@ -34,10 +34,10 @@ export async function handleSocialLogin(
     }
 
     // 토큰을 직접 반환하는 경우
-    // 주의: refreshToken은 HttpOnly 쿠키에 저장되므로 authLogin에서 null로 전달해도 됨
+    // 주의: refreshToken은 HttpOnly 쿠키에 저장되므로 authLogin 파라미터에서 제거됨
     // 실제 refreshToken 저장은 successService에서 처리됨
     if (data.success && data.token) {
-      authLogin(data.token, null, provider, data.user); // refreshToken은 null (HttpOnly 쿠키에 저장)
+      authLogin(data.token, provider, data.user); // refreshToken 파라미터 제거됨
       onSuccess?.(data);
       return;
     }

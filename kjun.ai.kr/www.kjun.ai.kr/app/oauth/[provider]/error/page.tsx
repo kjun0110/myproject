@@ -4,7 +4,7 @@ import { useSearchParams, useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { ERROR_MESSAGES } from "@/constants/oauth";
 import { OAuthStatusPage } from "@/components/OAuthStatusPage";
-import type { OAuthProvider } from "@/types";
+import type { OAuthProvider } from "@/store/auth.index";
 
 /**
  * 동적 라우팅 경로: app/oauth/[provider]/error/page.tsx

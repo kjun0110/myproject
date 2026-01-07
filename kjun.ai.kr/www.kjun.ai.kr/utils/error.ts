@@ -3,7 +3,7 @@
  */
 
 import { ERROR_MESSAGES } from "@/constants/oauth";
-import type { OAuthError } from "@/types";
+import type { OAuthError } from "@/store/auth.index";
 
 /**
  * 에러 응답을 파싱하여 에러 메시지를 추출

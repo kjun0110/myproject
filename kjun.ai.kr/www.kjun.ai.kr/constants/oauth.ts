@@ -1,4 +1,4 @@
-import type { OAuthProvider } from "@/types";
+import type { OAuthProvider } from "@/store/auth.index";
 
 // API 설정
 // 환경변수에서 백엔드 URL을 읽어오고, 없으면 개발 환경용 localhost 사용

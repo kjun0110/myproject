@@ -3,8 +3,8 @@
  * OAuth 콜백 후 토큰 저장 관련 핸들러
  */
 
-import { authLogin } from "@/store/authStore";
-import type { OAuthProvider, UserInfo } from "@/types";
+import { authLogin } from "@/store/auth.store";
+import type { OAuthProvider, UserInfo } from "@/store/auth.index";
 
 /**
  * Refresh Token을 HttpOnly 쿠키에 저장
@@ -43,7 +43,8 @@ export async function saveOAuthData(
   user?: UserInfo
 ): Promise<void> {
   // Access Token과 사용자 정보는 Zustand에 저장
-  authLogin(token, null, provider, user); // refreshToken은 null로 전달 (쿠키에 저장하므로)
+  // refreshToken 파라미터는 제거됨 (HttpOnly 쿠키에 저장하므로)
+  authLogin(token, provider, user);
 
   // Refresh Token이 있으면 HttpOnly 쿠키에 저장
   if (refreshToken) {

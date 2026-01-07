@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import { saveOAuthData } from "@/services/oauth/[provider]/success/successService";
 import { ERROR_MESSAGES } from "@/constants/oauth";
 import { OAuthStatusPage } from "@/components/OAuthStatusPage";
-import type { OAuthProvider, UserInfo } from "@/types";
+import type { OAuthProvider, UserInfo } from "@/store/auth.index";
 
 /**
  * 동적 라우팅 경로: app/oauth/[provider]/success/page.tsx

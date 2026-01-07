@@ -2,8 +2,8 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { getUserInfo, getLoginProvider, authLogout } from "@/store/authStore";
-import type { OAuthProvider, UserInfo } from "@/types";
+import { getUserInfo, getLoginProvider, authLogout } from "@/store/auth.store";
+import type { OAuthProvider, UserInfo } from "@/store/auth.index";
 import { PROVIDER_NAMES } from "@/constants/oauth";
 
 export default function Dashboard() {

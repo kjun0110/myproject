@@ -1,6 +1,6 @@
 "use client";
 
-import type { OAuthProvider } from "@/types";
+import type { OAuthProvider } from "@/store/auth.index";
 import { type ReactNode } from "react";
 
 interface SocialLoginButtonProps {

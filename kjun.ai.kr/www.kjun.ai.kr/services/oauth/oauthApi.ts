@@ -5,7 +5,7 @@
 
 import { API_GATEWAY_URL } from "@/constants/oauth";
 import { parseErrorResponse } from "@/utils/error";
-import type { OAuthProvider, OAuthResponse } from "@/types";
+import type { OAuthProvider, OAuthResponse } from "@/store/auth.index";
 
 /**
  * OAuth 로그인 API 호출

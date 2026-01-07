@@ -6,7 +6,7 @@ import { Header } from "@/components/Header";
 import { Sidebar } from "@/components/Sidebar";
 import { AIChatPanel } from "@/components/AIChatPanel";
 import { LoginModal } from "@/components/LoginModal";
-import { getUserInfo, getAccessToken } from "@/store/authStore";
+import { getUserInfo, getAccessToken } from "@/store/auth.store";
 
 export default function Home() {
   const router = useRouter();

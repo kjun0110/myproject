@@ -5,9 +5,9 @@
 
 "use client";
 
-import { useAuthStore } from "@/store/authStore";
+import { useAuthStore } from "@/store/auth.store";
 import { handleLogout } from "@/services/dashboard/dashboardService";
-import type { OAuthProvider, UserInfo } from "@/types";
+import type { OAuthProvider, UserInfo } from "@/store/auth.index";
 
 /**
  * 인증 상태 관리 Hook
