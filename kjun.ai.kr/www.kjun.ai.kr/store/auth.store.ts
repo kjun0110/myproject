@@ -162,6 +162,18 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
      */
     setAccessToken: (token) => {
         set({ accessToken: token });
+        
+        // 콘솔에서 Access Token 저장 확인
+        if (token) {
+            const tokenPreview = token.length > 50 
+                ? `${token.substring(0, 30)}...${token.substring(token.length - 10)}` 
+                : token;
+            console.log("🔑 [Zustand] Access Token 저장됨:", tokenPreview);
+            console.log("   - 전체 길이:", token.length, "자");
+            console.log("   - 저장 위치: Zustand 메모리 (새로고침 시 초기화됨)");
+        } else {
+            console.log("🔑 [Zustand] Access Token 삭제됨");
+        }
     },
 
     /**
@@ -211,9 +223,30 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
             isLoggedIn: true 
         });
 
-        console.log("✅ 로그인 완료");
-        console.log("   - Access Token: 메모리에 저장");
-        console.log("   - Refresh Token: HttpOnly 쿠키에 저장 (클라이언트 접근 불가)");
+        // 콘솔에서 Access Token 저장 확인
+        const tokenPreview = accessToken.length > 50 
+            ? `${accessToken.substring(0, 30)}...${accessToken.substring(accessToken.length - 10)}` 
+            : accessToken;
+        
+        console.log("✅ [Zustand] 로그인 완료");
+        console.log("   🔑 Access Token 저장됨:", tokenPreview);
+        console.log("   📏 Access Token 길이:", accessToken.length, "자");
+        console.log("   💾 저장 위치: Zustand 메모리 (새로고침 시 초기화됨)");
+        console.log("   🍪 Refresh Token: HttpOnly 쿠키에 저장 (클라이언트 접근 불가)");
+        console.log("   👤 Provider:", provider);
+        if (userInfo) {
+            console.log("   👤 User Info:", userInfo);
+        }
+        
+        // 현재 Zustand 상태 확인
+        const currentState = get();
+        console.log("📊 [Zustand] 현재 상태:", {
+            hasAccessToken: !!currentState.accessToken,
+            accessTokenLength: currentState.accessToken?.length || 0,
+            isLoggedIn: currentState.isLoggedIn,
+            provider: currentState.loginProvider,
+            hasUserInfo: !!currentState.userInfo,
+        });
     },
 
     /**
@@ -237,9 +270,19 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
             isLoggedIn: false,
         });
 
-        console.log("✅ 로그아웃 완료");
-        console.log("   - 메모리 및 localStorage 정리 완료");
-        console.log("   - HttpOnly 쿠키는 API Route에서 삭제 필요");
+        console.log("🚪 [Zustand] 로그아웃 완료");
+        console.log("   🔑 Access Token 삭제됨 (Zustand 메모리에서 제거)");
+        console.log("   💾 localStorage 정리 완료 (user_info, login_provider 삭제)");
+        console.log("   🍪 HttpOnly 쿠키는 API Route에서 삭제 필요");
+        
+        // 최종 상태 확인
+        const finalState = get();
+        console.log("📊 [Zustand] 로그아웃 후 상태:", {
+            hasAccessToken: !!finalState.accessToken,
+            isLoggedIn: finalState.isLoggedIn,
+            provider: finalState.loginProvider,
+            hasUserInfo: !!finalState.userInfo,
+        });
     },
 
     /**
@@ -264,7 +307,17 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
             // 새로운 Access Token 저장
             if (data.accessToken) {
                 set({ accessToken: data.accessToken });
-                console.log("✅ Access Token 갱신 성공");
+                
+                // 콘솔에서 Access Token 갱신 확인
+                const tokenPreview = data.accessToken.length > 50 
+                    ? `${data.accessToken.substring(0, 30)}...${data.accessToken.substring(data.accessToken.length - 10)}` 
+                    : data.accessToken;
+                
+                console.log("🔄 [Zustand] Access Token 갱신 성공");
+                console.log("   🔑 새로운 Access Token:", tokenPreview);
+                console.log("   📏 Access Token 길이:", data.accessToken.length, "자");
+                console.log("   💾 저장 위치: Zustand 메모리");
+                
                 return true;
             }
 

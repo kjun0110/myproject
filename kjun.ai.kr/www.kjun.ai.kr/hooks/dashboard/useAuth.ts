@@ -15,7 +15,6 @@ import type { OAuthProvider, UserInfo } from "@/store/auth.index";
 export function useAuth() {
     // Zustand 스토어에서 상태 구독
     const accessToken = useAuthStore((state) => state.accessToken);
-    const refreshToken = useAuthStore((state) => state.refreshToken); // 항상 null (HttpOnly 쿠키에 저장됨)
     const userInfo = useAuthStore((state) => state.userInfo);
     const loginProvider = useAuthStore((state) => state.loginProvider);
     const isLoggedIn = useAuthStore((state) => state.isLoggedIn);
@@ -23,7 +22,7 @@ export function useAuth() {
     return {
         // 상태
         accessToken,
-        refreshToken, // 주의: 항상 null입니다. Refresh Token은 HttpOnly 쿠키에 저장되어 클라이언트에서 읽을 수 없습니다.
+        // 주의: refreshToken은 HttpOnly 쿠키에 저장되어 클라이언트에서 읽을 수 없으므로 제거됨
         userInfo,
         loginProvider,
         isLoggedIn,
