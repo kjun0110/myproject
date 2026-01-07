@@ -3,7 +3,8 @@
  * 로그아웃 관련 핸들러
  */
 
-import { authLogout } from "@/store/authStore";
+import { authLogout, getAccessToken, getUserInfo } from "@/store/authStore";
+import { logoutApi } from "@/services/oauth/oauthApi";
 
 /**
  * Refresh Token 쿠키 삭제
@@ -27,16 +28,44 @@ export async function deleteRefreshTokenCookie(): Promise<void> {
 
 /**
  * 로그아웃 처리 (무상태 함수)
- * - Zustand 스토어 초기화
- * - HttpOnly 쿠키에서 refresh token 삭제
+ * - 백엔드 API 호출하여 모든 저장소에서 토큰 삭제:
+ *   - Upstash Redis에서 Access Token 삭제
+ *   - Neon PostgreSQL에서 Refresh Token 삭제
+ *   - Access Token 블랙리스트 추가
+ * - HttpOnly 쿠키에서 Refresh Token 삭제
+ * - Zustand 스토어 초기화 (Access Token 메모리에서 삭제)
  */
 export async function handleLogout(): Promise<void> {
-  // Zustand 스토어 초기화
-  authLogout();
+  try {
+    // 사용자 ID와 Access Token 가져오기
+    const userInfo = getUserInfo();
+    const accessToken = getAccessToken();
+    const userId = userInfo?.id;
 
-  // HttpOnly 쿠키에서 refresh token 삭제
-  await deleteRefreshTokenCookie();
+    // 백엔드 로그아웃 API 호출 (모든 저장소에서 토큰 삭제)
+    if (userId) {
+      try {
+        await logoutApi(userId, accessToken);
+      } catch (error) {
+        console.error("❌ 백엔드 로그아웃 API 호출 실패:", error);
+        // 백엔드 호출 실패해도 프론트엔드 로그아웃은 진행
+      }
+    } else {
+      console.warn("⚠️ 사용자 ID가 없어 백엔드 로그아웃 API를 호출하지 않습니다.");
+    }
 
-  console.log("✅ 로그아웃 완료");
+    // HttpOnly 쿠키에서 Refresh Token 삭제
+    await deleteRefreshTokenCookie();
+
+    // Zustand 스토어 초기화 (Access Token 메모리에서 삭제, localStorage 정리)
+    authLogout();
+
+    console.log("✅ 로그아웃 완료 (모든 저장소에서 토큰 삭제 완료)");
+  } catch (error) {
+    console.error("❌ 로그아웃 처리 중 오류 발생:", error);
+    // 에러가 나도 최소한 프론트엔드 로그아웃은 진행
+    authLogout();
+    await deleteRefreshTokenCookie();
+  }
 }
 

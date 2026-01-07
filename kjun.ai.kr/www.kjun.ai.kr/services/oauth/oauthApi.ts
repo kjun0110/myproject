@@ -60,18 +60,31 @@ export async function refreshAccessTokenApi(
 
 /**
  * 로그아웃 API 호출
+ * - Upstash Redis에서 Access Token 삭제
+ * - Neon PostgreSQL에서 Refresh Token 삭제
+ * - Access Token 블랙리스트 추가
  */
-export async function logoutApi(accessToken: string): Promise<void> {
+export async function logoutApi(userId: string | number, accessToken: string | null): Promise<void> {
+  if (!userId) {
+    throw new Error("사용자 ID가 필요합니다");
+  }
+
   const response = await fetch(`${API_GATEWAY_URL}/oauth/logout`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${accessToken}`,
     },
+    body: JSON.stringify({
+      userId: typeof userId === "string" ? parseInt(userId, 10) : userId,
+      accessToken: accessToken || undefined, // null이면 undefined로 전송하지 않음
+    }),
   });
 
   if (!response.ok) {
-    throw new Error("로그아웃 실패");
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.message || "로그아웃 실패");
   }
+
+  console.log("✅ 백엔드 로그아웃 완료 (Redis, Neon DB에서 토큰 삭제 완료)");
 }
 
