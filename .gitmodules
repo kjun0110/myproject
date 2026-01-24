@@ -10,3 +10,6 @@
 [submodule "filter"]
 	path = filter
 	url = https://github.com/kjun0110/langchain-RAG
+[submodule "kjun.ai.kr/kjun0110.github.io"]
+	path = kjun.ai.kr/kjun0110.github.io
+	url = https://github.com/kjun0110/kjun0110.github.io
